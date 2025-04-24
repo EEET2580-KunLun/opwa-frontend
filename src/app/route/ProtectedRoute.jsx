@@ -1,6 +1,6 @@
 import {TbNavigationEast} from "react-icons/tb";
 import {Navigate, Outlet} from "react-router-dom";
-import {getUserRole, isAuthenticated} from "../auth/service/AuthService.js";
+import {getUserRole, isAuthenticated} from "../../modules/auth/service/AuthService.js";
 
 const ProtectedRoute = ({allowedRoles}) => {
     const isAuth = isAuthenticated();

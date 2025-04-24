@@ -1,6 +1,6 @@
 import { BrowserRouter } from "react-router-dom";
-import PageLayout from "./component/welcoming/PageLayout";
-import RouteConfig from "./route/RouteConfig";
+import PageLayout from "./modules/auth/component/welcoming/PageLayout";
+import RouteConfig from "./app/route/RouteConfig";
 
 function App() {
 

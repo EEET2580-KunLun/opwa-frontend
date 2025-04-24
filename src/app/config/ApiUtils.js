@@ -1,4 +1,4 @@
-import { getToken } from "../auth/service/AuthService.js";
+import { getToken } from "../../modules/auth/service/AuthService.js";
 
 class ApiUtils {
     /**

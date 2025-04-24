@@ -1,4 +1,4 @@
-import Navbar from "./navbar/NavbarInWelcomePage";
+import Navbar from "../navbar/NavbarInWelcomePage.jsx";
 import "./Styles.css"
 
 const PageLayout = ({mainBody}) => {

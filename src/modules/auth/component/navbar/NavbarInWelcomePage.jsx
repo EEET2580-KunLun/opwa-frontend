@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import '../Styles.css';
+import '../welcoming/Styles.css';
 
 
 const NavbarInWelcomePage = () => {

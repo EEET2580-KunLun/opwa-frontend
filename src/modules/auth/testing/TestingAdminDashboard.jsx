@@ -1,5 +1,5 @@
 import React from 'react';
-import { getUserRole } from '../auth/service/AuthService';
+import { getUserRole } from '../service/AuthService.js';
 
 const TestingAdminDashboard = () => {
     return (

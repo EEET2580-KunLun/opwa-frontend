@@ -1,4 +1,4 @@
-import { API_URL } from "../../config/Api.js";
+import { API_URL } from "../../../app/config/Api.js";
 
 export const login = async(email, password) => {
     try {

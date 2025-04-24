@@ -3,12 +3,12 @@ import React from 'react';
 import { Suspense, lazy } from 'react';
 import ProtectedRoute from './ProtectedRoute.jsx';
 
-const WelcomeUI = lazy(() => import('../component/welcoming/WelcomeUI.jsx'));
-const About = lazy(() => import('../component/welcoming/About.jsx'));
-const Login = lazy(() => import('../component/welcoming/Login.jsx'));
-const ForgotPassword = lazy(() => import('../component/ForgotPassword.jsx'));
+const WelcomeUI = lazy(() => import('../../modules/auth/component/welcoming/WelcomeUI.jsx'));
+const About = lazy(() => import('../../modules/auth/component/welcoming/About.jsx'));
+const Login = lazy(() => import('../../modules/auth/component/welcoming/Login.jsx'));
+const ForgotPassword = lazy(() => import('../../modules/auth/component/ForgotPassword.jsx'));
 
-const TestingAdminDashboard = lazy(() => import('../testing/TestingAdminDashboard.jsx')); // for testing purpose only
+const TestingAdminDashboard = lazy(() => import('../../modules/auth/testing/TestingAdminDashboard.jsx')); // for testing purpose only
 const RouteConfig = () => {
     return(
         <Suspense fallback={<div>Loading...</div>}>

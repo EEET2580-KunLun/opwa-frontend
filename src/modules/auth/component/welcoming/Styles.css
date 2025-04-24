@@ -25,7 +25,7 @@
 }
 
 .page-layout {
-    background-image: url("../../image/background-image.png");
+    background-image: url("../../../../shared/image/background-image.png");
     background-size: cover;
     background-position: center;
     height: 100vh;
