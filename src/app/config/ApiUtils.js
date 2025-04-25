@@ -1,4 +1,3 @@
-import { getToken } from "../../modules/auth/service/AuthService.js";
 
 class ApiUtils {
     /**
@@ -8,14 +7,20 @@ class ApiUtils {
      * @returns {Promise<any>} The response data
      */
     static async get(url, requiresAuth = true) {
-        const headers = this.createHeaders(requiresAuth);
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+
+        // If it requires authentication, include credentials
+        if (requiresAuth) {
+            options.credentials = 'include';
+        }
 
         try {
-            const response = await fetch(url, {
-                method: 'GET',
-                headers
-            });
-
+            const response = await fetch(url, options);
             return this.handleResponse(response);
         } catch (error) {
             this.handleError(error);
@@ -31,40 +36,26 @@ class ApiUtils {
      * @returns {Promise<any>} The response data
      */
     static async post(url, data, requiresAuth = true) {
-        const headers = this.createHeaders(requiresAuth);
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        };
+
+        // If this requires authentication, include credentials
+        if (requiresAuth) {
+            options.credentials = 'include';
+        }
 
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(data)
-            });
-
+            const response = await fetch(url, options);
             return this.handleResponse(response);
         } catch (error) {
             this.handleError(error);
             throw error;
         }
-    }
-
-    /**
-     * Create headers for requests
-     * @param {boolean} requiresAuth - Whether to include authorization header
-     * @returns {object} Headers object
-     */
-    static createHeaders(requiresAuth) {
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-
-        if (requiresAuth) {
-            const token = getToken();
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-        }
-
-        return headers;
     }
 
     /**

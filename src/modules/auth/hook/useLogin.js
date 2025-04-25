@@ -46,8 +46,7 @@ export const useLogin = () => {
             const response = await login(email, password);
 
             if (response.success) {
-                // Store the token in sessionStorage
-                sessionStorage.setItem("token", response.token);
+                // Store the role of user
                 sessionStorage.setItem("userRole", response.role);
 
                 switch (response.role) {
@@ -78,7 +77,7 @@ export const useLogin = () => {
         try {
             setLoading(true);
             // Google login logic here
-            console.log("Google login initiated");
+            window.location.href = `/oauth2/authorization/google`;
         } catch (err) {
             setError('Google authentication failed. Please try again.');
             console.error('Google login error:', err);

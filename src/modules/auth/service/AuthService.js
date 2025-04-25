@@ -1,16 +1,25 @@
 import { API_URL } from "../../../app/config/Api.js";
 
+function getCsrfToken() {
+    const match = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)');
+    return match ? match[2] : '';
+
+}
+
 export const login = async(email, password) => {
     try {
         const response = await fetch(`${API_URL}/v1/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "X-XSRF-TOKEN": getCsrfToken()
+
             },
             body: JSON.stringify({
                 email,
                 password,
             }),
+            credentials: 'include' // This is for cookies to be sent/received
         })
         const data = await response.json();
 
@@ -21,24 +30,28 @@ export const login = async(email, password) => {
             }
         }
 
-        const accessToken = data.data?.access_token
+        // const accessToken = data.data?.access_token
 
-        if (!accessToken) {
-            console.error("Login response doesn't contain a token:", data);
-            return {
-                success: false,
-                message: "Authentication failed: No token received"
-            };
+        // if (!accessToken) {
+        //     console.error("Login response doesn't contain a token:", data);
+        //     return {
+        //         success: false,
+        //         message: "Authentication failed: No token received"
+        //     };
+        // }
+
+        const userRole = data.data?.role;
+
+        // Store only the role and user info in sessionStorage, not the token
+        sessionStorage.setItem("userRole", userRole);
+        if (data.data?.user) {
+            sessionStorage.setItem("userInfo", JSON.stringify(data.data.user));
         }
-
-        const userRole = extractRoleFromToken(accessToken);
 
         return {
             success: true,
-            token: data.data.accessToken,
-            role: userRole,
-            refreshToken: data.data.refreshToken,
-            expiresIn: data.data.expiresIn,
+            role: userRole
+            // we're using HTTP-only cookies
         }
     } catch(error){
         console.error("Login error: ", error);
@@ -49,46 +62,40 @@ export const login = async(email, password) => {
     }
 }
 
-
-const extractRoleFromToken = (token) => {
+export const isAuthenticated = async () => {
+    // Instead of checking for a token in sessionStorage, make a request to protected endpoint to check if the cookie is valid
     try {
-        if (!token) {
-            console.warn('No token provided to extractRoleFromToken');
-            return 'USER'; // Default role
-        }
+        const response = await fetch(`${API_URL}/v1/auth/validate`, {
+            method: 'GET',
+            credentials: 'include' // for sending the cookie
+        });
 
-        const tokenParts = token.split('.');
-        if (tokenParts.length !== 3) {
-            console.warn('Token does not appear to be in JWT format');
-            return 'USER';
-        }
-
-        const payload = JSON.parse(atob(tokenParts[1]));
-        // Check where the role might be in in payload structure
-        return payload.role || payload.authorities || payload.roles || 'USER';
+        return response.ok;
     } catch (error) {
-        console.error('Error extracting role from token', error);
-        return 'USER';
+        console.error('Authentication check failed:', error);
+        return false;
     }
-};
 
-
-export const isAuthenticated = () => {
-    const token = sessionStorage.getItem("token");
-    return !!token; // return true if token is not null
 }
 
 export const getUserRole = () => {
     return sessionStorage.getItem("userRole");
 }
 
-// For logout
-export const logout = () => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("userRole");
-    window.location.href = "/login"; // redirect to login page
-}
-
-export const getToken = () => {
-    return sessionStorage.getItem("token");
+// For logout, call the backend to clear the cookie
+export const logout = async () => {
+    try {
+        // Call backend to invalidate and clear the cookie
+        await fetch(`${API_URL}/v1/auth/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    } finally {
+        // Clear local storage/session storage
+        sessionStorage.removeItem("userRole");
+        sessionStorage.removeItem("userInfo");
+        window.location.href = "/login"; // redirect to login page
+    }
 }
