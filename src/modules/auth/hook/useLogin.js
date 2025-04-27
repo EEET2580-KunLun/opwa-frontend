@@ -1,14 +1,18 @@
-import {useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {login} from '../service/AuthService.js';
+// src/modules/auth/hook/useLogin.js
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import AuthService from '../service/AuthService';
 
 export const useLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [localError, setLocalError] = useState('');
 
     const navigate = useNavigate();
+
+    // Get loading and error from Redux state
+    const { loading, error: reduxError } = useSelector(state => state.auth);
 
     // Email validation
     const isValidEmail = (email) => {
@@ -18,83 +22,86 @@ export const useLogin = () => {
 
     const handleEmailChange = (e) => {
         setEmail(e.target.value);
-        // Clear error when user starts typing
-        if (error) setError('');
+        if (localError) setLocalError('');
     };
 
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
-        // Clear error when user starts typing
-        if (error) setError('');
+        if (localError) setLocalError('');
     };
 
     const handleSubmit = async () => {
-
         // Validate input fields
         if (!email.trim() || !password.trim()) {
-            setError('Please enter your email and password');
+            setLocalError('Please enter your email and password');
             return;
         }
 
         if (!isValidEmail(email)) {
-            setError("Invalid email format. The email must end with '.com' or '.vn'");
+            setLocalError("Invalid email format. The email must end with '.com' or '.vn'");
             return;
         }
 
         try {
-            setLoading(true);
-            const response = await login(email, password);
+            const result = await AuthService.login(email, password);
 
-            if (response.success) {
-                // Store the token in sessionStorage
-                sessionStorage.setItem("token", response.token);
-                sessionStorage.setItem("userRole", response.role);
+            if (result.success) {
+                // Get redirectUrl from session storage or default by role
+                const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
 
-                switch (response.role) {
-                    case "ADMIN":
-                        navigate("/admin/dashboard");
-                        break;
-                    case "OPERATOR":
-                        navigate("/operator/dashboard");
-                        break;
-                    case "TICKET_AGENT":
-                        navigate("/ticket-agent/dashboard");
-                        break;
-                    default:
-                        navigate("/login");
+                if (redirectUrl) {
+                    sessionStorage.removeItem('redirectAfterLogin');
+                    navigate(redirectUrl);
+                } else {
+                    // Navigate based on user role
+                    switch (result.role) {
+                        case "ADMIN":
+                            navigate("/admin/dashboard");
+                            break;
+                        case "OPERATOR":
+                            navigate("/operator/dashboard");
+                            break;
+                        case "TICKET_AGENT":
+                            navigate("/ticket-agent/dashboard");
+                            break;
+                        case "MASTER_ADMIN":
+                            navigate("/master-admin/dashboard");
+                            break;
+                        default:
+                            navigate("/login");
+                    }
                 }
-            }else{
-                setError(response.message || "Credentials failed");
+            } else {
+                setLocalError(result.message);
             }
-        } catch(err){
-            setError('Authentication failed. Please try again later.');
+        } catch (err) {
+            setLocalError('Authentication failed. Please try again later.');
             console.error('Login error:', err);
-        } finally {
-            setLoading(false);
         }
-    }
+    };
 
     const handleGoogleLogin = async () => {
+        // Placeholder for Google login
         try {
-            setLoading(true);
-            // Google login logic here
+            setLocalError('');
             console.log("Google login initiated");
+            // Implementation would call AuthService.googleLogin() if available
         } catch (err) {
-            setError('Google authentication failed. Please try again.');
+            setLocalError('Google authentication failed. Please try again.');
             console.error('Google login error:', err);
-        } finally {
-            setLoading(false);
         }
     };
 
     return {
         email,
         password,
-        error,
+        error: localError || reduxError,
         loading,
         handleEmailChange,
         handlePasswordChange,
         handleSubmit,
         handleGoogleLogin
     };
-}
+};
+
+export default useLogin;

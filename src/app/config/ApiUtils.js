@@ -1,44 +1,54 @@
-import { getToken } from "../../modules/auth/service/AuthService.js";
+// src/app/config/ApiUtils.js
+import { store } from '../store/store';
+import { refreshToken, logout } from '../../modules/auth/store/authSlice';
+import { AUTH_ENDPOINTS } from './Api';
 
 class ApiUtils {
-    /**
-     * Make a GET request
-     * @param {string} url - The endpoint URL
-     * @param {boolean} requiresAuth - Whether the request requires authentication
-     * @returns {Promise<any>} The response data
-     */
-    static async get(url, requiresAuth = true) {
-        const headers = this.createHeaders(requiresAuth);
-
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-                headers
-            });
-
-            return this.handleResponse(response);
-        } catch (error) {
-            this.handleError(error);
-            throw error;
-        }
+    static async get(url) {
+        return this.makeRequest('GET', url);
     }
 
-    /**
-     * Make a POST request
-     * @param {string} url - The endpoint URL
-     * @param {object} data - The data to send
-     * @param {boolean} requiresAuth - Whether the request requires authentication
-     * @returns {Promise<any>} The response data
-     */
-    static async post(url, data, requiresAuth = true) {
-        const headers = this.createHeaders(requiresAuth);
+    static async post(url, data) {
+        return this.makeRequest('POST', url, data);
+    }
+
+    static async put(url, data) {
+        return this.makeRequest('PUT', url, data);
+    }
+
+    static async delete(url) {
+        return this.makeRequest('DELETE', url);
+    }
+
+    static async makeRequest(method, url, data = null) {
+        const headers = this.createHeaders();
 
         try {
             const response = await fetch(url, {
-                method: 'POST',
+                method,
                 headers,
-                body: JSON.stringify(data)
+                body: data ? JSON.stringify(data) : null,
+                credentials: 'include' // Include cookies for JWT tokens
             });
+
+            if (response.status === 401) {
+                // Token expired, attempt to refresh
+                const refreshed = await this.refreshTokenAndUpdateState();
+
+                if (refreshed) {
+                    // Retry the original request if refresh was successful
+                    return this.makeRequest(method, url, data);
+                } else {
+                    // Logout if refresh token is invalid/expired
+                    await store.dispatch(logout());
+                    throw new Error('Session expired. Please login again.');
+                }
+            }
+
+            if (!response.ok) {
+                const errorData = await this.parseErrorResponse(response);
+                throw new Error(errorData.message || `Request failed with status ${response.status}`);
+            }
 
             return this.handleResponse(response);
         } catch (error) {
@@ -47,72 +57,63 @@ class ApiUtils {
         }
     }
 
-    /**
-     * Create headers for requests
-     * @param {boolean} requiresAuth - Whether to include authorization header
-     * @returns {object} Headers object
-     */
-    static createHeaders(requiresAuth) {
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-
-        if (requiresAuth) {
-            const token = getToken();
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
+    static async refreshTokenAndUpdateState() {
+        try {
+            // Use the thunk action to refresh token and update Redux state
+            await store.dispatch(refreshToken()).unwrap();
+            return true;
+        } catch (error) {
+            console.error('Token refresh failed:', error);
+            return false;
         }
-
-        return headers;
     }
 
-    /**
-     * Handle API response
-     * @param {Response} response - The fetch response
-     * @returns {Promise<any>} The parsed response data
-     */
+    static createHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+    }
+
     static async handleResponse(response) {
         const contentType = response.headers.get('content-type');
-
         if (contentType && contentType.includes('application/json')) {
-            const data = await response.json();
+            return await response.json();
+        }
 
-            if (!response.ok) {
-                // Handle authentication errors
-                if (response.status === 401) {
-                    // Redirect to login if unauthorized
-                    window.location.href = '/login';
-                }
+        if (response.status === 204) {
+            return {}; // Return empty object for No Content responses
+        }
 
-                throw {
-                    status: response.status,
-                    message: data.message || 'An error occurred',
-                    data
-                };
+        return await response.text();
+    }
+
+    static async parseErrorResponse(response) {
+        try {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
             }
-
-            return data;
-        } else {
-            const text = await response.text();
-
-            if (!response.ok) {
-                throw {
-                    status: response.status,
-                    message: text || 'An error occurred'
-                };
-            }
-
-            return text;
+            return { message: await response.text() };
+        } catch (error) {
+            return { message: `HTTP Error ${response.status}` };
         }
     }
 
-    /**
-     * Handle API errors
-     * @param {Error} error - The error object
-     */
     static handleError(error) {
         console.error('API Error:', error);
+    }
+
+    // src/app/config/ApiUtils.js
+    static async handleLogoutAndRedirect() {
+        await store.dispatch(logout());
+
+        // Redirect to login page
+        if (window.location.pathname !== '/login') {
+            // Store the current location to redirect back after login
+            sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
+            window.location.href = '/login?expired=true';
+        }
     }
 }
 

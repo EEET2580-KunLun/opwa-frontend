@@ -1,18 +1,16 @@
-import { BrowserRouter } from "react-router-dom";
-import PageLayout from "./modules/auth/component/welcoming/PageLayout";
-import RouteConfig from "./app/route/RouteConfig";
+// src/App.jsx
+import { BrowserRouter } from 'react-router-dom';
+import PageLayout from "./modules/auth/component/welcoming/PageLayout.jsx";
+import RouteConfig from "./app/route/RouteConfig.jsx";
+import SessionTimeoutHandler from "./modules/auth/component/session/SessionTimeoutHandler.jsx";
 
 function App() {
-
-  return (
-    <>
-      <BrowserRouter>
-        <PageLayout
-            mainBody={<RouteConfig />}
-        ></PageLayout>
-      </BrowserRouter>
-    </>
-  )
+    return (
+        <BrowserRouter>
+            <SessionTimeoutHandler />
+            <PageLayout mainBody={<RouteConfig />} />
+        </BrowserRouter>
+    );
 }
 
-export default App
+export default App;

@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { FaEnvelope, FaEyeSlash, FaEye, FaGoogle } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import './Styles.css'
 import { useLogin } from '../../hook/useLogin.js';
+
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
+    const [searchParams] = useSearchParams();
+    const message = searchParams.get('message');
 
     const {
         email,
@@ -21,6 +24,7 @@ const Login = () => {
 
     return(
         <div className="login-container">
+            {message && <div className="alert alert-info">{message}</div>}
             <div className="login-card">
                 <h1 className="text-center text-white mb-4">Sign in</h1>
 
