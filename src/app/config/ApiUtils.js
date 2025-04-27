@@ -1,7 +1,6 @@
 // src/app/config/ApiUtils.js
 import { store } from '../store/store';
 import { refreshToken, logout } from '../../modules/auth/store/authSlice';
-import { AUTH_ENDPOINTS } from './Api';
 
 class ApiUtils {
     static async get(url) {
@@ -96,7 +95,7 @@ class ApiUtils {
             }
             return { message: await response.text() };
         } catch (error) {
-            return { message: `HTTP Error ${response.status}` };
+            return { message: `HTTP Error ${response.status} : error ${error}` };
         }
     }
 

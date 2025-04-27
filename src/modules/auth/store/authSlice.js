@@ -22,7 +22,7 @@ export const login = createAsyncThunk(
 
 export const logout = createAsyncThunk(
     'auth/logout',
-    async (_, { dispatch }) => {
+    async (_) => {
         try {
             // Call the logout endpoint which will clear the HTTP-only cookie
             await ApiUtils.post(AUTH_ENDPOINTS.LOGOUT, "");
@@ -39,7 +39,6 @@ export const verifyPersistedAuth = createAsyncThunk(
     async (_, { getState }) => {
         const { auth } = getState();
         if (auth.isAuthenticated && auth.user) {
-            try {
                 // Select the appropriate validation endpoint based on user role
                 let validationEndpoint;
                 const { role } = auth.user;
@@ -58,9 +57,6 @@ export const verifyPersistedAuth = createAsyncThunk(
 
                 const response = await ApiUtils.get(validationEndpoint);
                 return response;
-            } catch (error) {
-                throw error;
-            }
         }
         throw new Error('No persisted auth');
     }
@@ -69,12 +65,7 @@ export const verifyPersistedAuth = createAsyncThunk(
 export const refreshToken = createAsyncThunk(
     'auth/refreshToken',
     async () => {
-        try {
-            const response = await ApiUtils.post(AUTH_ENDPOINTS.REFRESH_TOKEN);
-            return response;
-        } catch (error) {
-            throw error;
-        }
+        return await ApiUtils.post(AUTH_ENDPOINTS.REFRESH_TOKEN);
     }
 );
 

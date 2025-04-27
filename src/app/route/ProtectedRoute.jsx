@@ -1,32 +1,28 @@
-import {TbNavigationEast} from "react-icons/tb";
-import {Navigate, Outlet} from "react-router-dom";
-import {getUserRole, isAuthenticated} from "../../modules/auth/service/AuthService.js";
+// src/app/route/ProtectedRoute.jsx
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
-const ProtectedRoute = ({allowedRoles}) => {
-    const isAuth = isAuthenticated();
-    const userRole = getUserRole();
+const ProtectedRoute = ({ allowedRoles }) => {
+    const { isAuthenticated, user } = useSelector(state => state.auth);
 
-    // If user is not authenticated
-    if (!isAuth) {
-        return(
-            <Navigate to="/login" replace/>
-        )
+    // Check if user is authenticated and has required role
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
     }
 
-    // If allowedRoles is not provided or empty, allow access to any authenticated user
-    if(!allowedRoles || allowedRoles.length === 0) {
-        return(
-            <Outlet/>
-        )
+    // Assuming user object has a role property
+    const userRole = user?.role || 'GUEST';
+
+    // Check if user role is in allowed roles
+    const hasRequiredRole = allowedRoles.includes(userRole);
+
+    if (!hasRequiredRole) {
+        return <Navigate to="/" replace />;
     }
 
-    // If user role is in allowedRoles, allow access
-    if (allowedRoles.includes(userRole)) {
-        return <Outlet />;
-    }
-
-    // If user role is not in allowedRoles, redirect to unauthorized page
-    return <Navigate to="/login" replace />;
-}
+    // If authenticated and authorized, render child routes
+    return <Outlet />;
+};
 
 export default ProtectedRoute;
