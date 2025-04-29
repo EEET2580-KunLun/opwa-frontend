@@ -1,4 +1,3 @@
-// src/app/route/ProtectedRoute.jsx
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -11,7 +10,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
         return <Navigate to="/login" replace />;
     }
 
-    // Assuming user object has a role property
+    //get user role from redux store
     const userRole = user?.role || 'GUEST';
 
     // Check if user role is in allowed roles

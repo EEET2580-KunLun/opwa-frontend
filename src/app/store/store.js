@@ -5,6 +5,7 @@ import storage from 'redux-persist/lib/storage';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
 import { combineReducers } from 'redux';
 import authReducer from '../../modules/auth/store/authSlice';
+import {apiSlice} from "../config/api/apiSlice.js";
 
 // Create the encryption transform
 const encryptor = encryptTransform({
@@ -17,11 +18,7 @@ const encryptor = encryptTransform({
     }
 });
 
-const rootReducer = combineReducers({
-    auth: authReducer,
-    // Add other reducers here
-});
-
+// Define the persist configuration
 const persistConfig = {
     key: 'root',
     storage,
@@ -29,21 +26,30 @@ const persistConfig = {
     transforms: [encryptor]
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// Apply persistence to the entire root reducer
+const persistedReducer = persistReducer(persistConfig,
+    combineReducers({
+        auth: authReducer,
+        [apiSlice.reducerPath]: apiSlice.reducer
+    })
+);
 
+// Create the Redux store
 export const store = configureStore({
     reducer: persistedReducer,
-    middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
-            serializableCheck: {
-                // Ignore these actions for serializability check
-                ignoredActions: [
-                    'persist/PERSIST',
-                    'persist/REHYDRATE',
-                    'auth/login/rejected'
-                ],
-            },
-        }),
+    middleware: getDefaultMiddleware => getDefaultMiddleware({
+        serializableCheck: {
+            ignoredActions: [
+                'persist/PERSIST',
+                'persist/REHYDRATE',
+                'persist/PAUSE',
+                'persist/FLUSH',
+                'persist/PURGE',
+                'persist/REGISTER'
+            ]
+        }
+    }).concat(apiSlice.middleware),
+    devTools: true
 });
 
 export const persistor = persistStore(store);

@@ -23,7 +23,7 @@ const RouteConfig = () => {
 
                 {/* Admin Routes */}
                 <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN']} />}>
-                    {/*<Route path="/admin/dashboard" element={<AdminDashboard />} />*/}
+                    <Route path="/admin/dashboard" element={<StaffManagement />} />
                     <Route path="/admin/staff" element={<StaffManagement />} />
                 </Route>
 

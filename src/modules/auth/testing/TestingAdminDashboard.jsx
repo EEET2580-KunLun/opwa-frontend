@@ -1,5 +1,5 @@
 import React from 'react';
-import { getUserRole } from '../service/AuthService.js';
+import AuthService from '../service/AuthService';
 
 const TestingAdminDashboard = () => {
     return (
@@ -10,7 +10,7 @@ const TestingAdminDashboard = () => {
                 </div>
                 <div className="card-body">
                     <h4>Welcome to the HCMC Metro Admin Dashboard</h4>
-                    <p>You are logged in as: <strong>{getUserRole()}</strong></p>
+                    <p>You are logged in as: <strong>{AuthService.getUserRole()}</strong></p>
                     <p>This is a test dashboard for successful login.</p>
                 </div>
             </div>

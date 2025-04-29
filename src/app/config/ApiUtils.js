@@ -1,8 +1,11 @@
 // src/app/config/ApiUtils.js
-import { store } from '../store/store';
-import { refreshToken, logout } from '../../modules/auth/store/authSlice';
+import { AUTH_ENDPOINTS } from "./Api.js";
 
 class ApiUtils {
+    static isRefreshing = false;
+    static refreshAttempts = 0;
+    static MAX_REFRESH_ATTEMPTS = 1;
+
     static async get(url) {
         return this.makeRequest('GET', url);
     }
@@ -32,16 +35,22 @@ class ApiUtils {
 
             if (response.status === 401) {
                 // Token expired, attempt to refresh
-                const refreshed = await this.refreshTokenAndUpdateState();
+                if (this.refreshAttempts < this.MAX_REFRESH_ATTEMPTS) {
+                    const refreshSuccess = await this.refreshToken();
 
-                if (refreshed) {
-                    // Retry the original request if refresh was successful
-                    return this.makeRequest(method, url, data);
-                } else {
-                    // Logout if refresh token is invalid/expired
-                    await store.dispatch(logout());
-                    throw new Error('Session expired. Please login again.');
+                    if (refreshSuccess) {
+                        // Reset refresh attempts on success
+                        this.refreshAttempts = 0;
+                        // Retry the original request if refresh was successful
+                        return this.makeRequest(method, url, data);
+                    }
                 }
+
+                // Reset counter for future attempts
+                this.refreshAttempts = 0;
+
+                const errorData = await this.parseErrorResponse(response);
+                throw new Error(errorData.message || 'Authentication failed');
             }
 
             if (!response.ok) {
@@ -56,14 +65,37 @@ class ApiUtils {
         }
     }
 
-    static async refreshTokenAndUpdateState() {
+    static async refreshToken() {
+        // Prevent multiple simultaneous refresh attempts
+        if (this.isRefreshing) {
+            return new Promise(resolve => {
+                const checkRefreshStatus = setInterval(() => {
+                    if (!this.isRefreshing) {
+                        clearInterval(checkRefreshStatus);
+                        resolve(true);
+                    }
+                }, 100);
+            });
+        }
+
         try {
-            // Use the thunk action to refresh token and update Redux state
-            await store.dispatch(refreshToken()).unwrap();
-            return true;
+            this.isRefreshing = true;
+            this.refreshAttempts += 1;
+
+            const response = await fetch(AUTH_ENDPOINTS.REFRESH_TOKEN, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            return response.ok;
         } catch (error) {
             console.error('Token refresh failed:', error);
             return false;
+        } finally {
+            this.isRefreshing = false;
         }
     }
 
@@ -101,18 +133,6 @@ class ApiUtils {
 
     static handleError(error) {
         console.error('API Error:', error);
-    }
-
-    // src/app/config/ApiUtils.js
-    static async handleLogoutAndRedirect() {
-        await store.dispatch(logout());
-
-        // Redirect to login page
-        if (window.location.pathname !== '/login') {
-            // Store the current location to redirect back after login
-            sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
-            window.location.href = '/login?expired=true';
-        }
     }
 }
 

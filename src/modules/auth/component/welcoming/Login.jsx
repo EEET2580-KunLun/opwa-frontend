@@ -15,7 +15,7 @@ const Login = () => {
         email,
         password,
         error,
-        loading,
+        isLoading,
         handleEmailChange,
         handlePasswordChange,
         handleSubmit,
@@ -41,7 +41,7 @@ const Login = () => {
                         placeholder="Email"
                         value={email}
                         onChange={handleEmailChange}
-                        disabled={loading}
+                        disabled={isLoading}
                     />
                     <span className="input-group-text login-icon">
                         <FaEnvelope />
@@ -55,7 +55,7 @@ const Login = () => {
                         placeholder="Password"
                         value={password}
                         onChange={handlePasswordChange}
-                        disabled={loading}
+                        disabled={isLoading}
                     />
                     <span
                         className="input-group-text login-icon cursor-pointer"
@@ -73,8 +73,8 @@ const Login = () => {
 
                 <button className="btn btn-primary w-100 login-button mb-3"
                         onClick={handleSubmit}
-                        disabled={loading}>
-                    {loading ? 'Signing in...' : 'Sign in'}
+                        disabled={isLoading}>
+                    {isLoading ? 'Signing in...' : 'Sign in'}
                 </button>
 
                 <div className="divider">
@@ -83,7 +83,7 @@ const Login = () => {
 
                 <button className="btn btn-outline-light w-100 google-button"
                     onClick={handleGoogleLogin}
-                    disabled={loading}>
+                    disabled={isLoading}>
                     <span className="google-icon">
                         <FaGoogle />
                     </span>
