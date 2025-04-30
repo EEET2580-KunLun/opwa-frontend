@@ -47,12 +47,21 @@ export const useLogin = () => {
         try {
             const response = await login({email, password});
             console.log("Login response:", response);
-            if (response.data.meta.status === 200) {
+
+            // Check if the response has error
+            if(response.error){
+                setError(response.error?.data?.meta?.message || "Authentication failed");
+                return;
+            }
+
+            if (response.data?.meta?.status === 200) {
                 dispatch(setLogin(response));
                 setError('');
                 setEmail('');
                 setPassword('');
-                switch (response.data.data.staff.role) {
+
+                const role = response.data?.data?.staff?.role;
+                switch (role) {
                     case "ADMIN":
                         console.log("User role:", response.data.data.staff.role);
                         navigate("/admin/dashboard");
@@ -67,7 +76,7 @@ export const useLogin = () => {
                         navigate("/login");
                 }
             }else{
-                setError(response.meta?.message || "Credentials failed");
+                setError(response.data?.meta?.message || "Credentials failed");
             }
         } catch(err){
             setError('Authentication failed. Please try again later.');
