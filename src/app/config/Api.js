@@ -16,16 +16,17 @@ export const AUTH_ENDPOINTS = {
     IS_OPERATOR: `/auth/operator`,
 };
 
+
 // Staff endpoints
 export const STAFF_ENDPOINTS = {
-    FETCH_ALL: `${BASE_URL}/staffs`,
-    FETCH_BY_ID: (staffId) => `${BASE_URL}/staffs/${staffId}`,
-    CREATE: `${BASE_URL}/staffs`,
-    UPDATE: (staffId) => `${BASE_URL}/staffs/${staffId}`,
-    DELETE: (staffId) => `${BASE_URL}/staffs/${staffId}`,
-    UPLOAD_AVATAR: (staffId) => `${BASE_URL}/staffs/${staffId}/avatar`,
-    DELETE_AVATAR: (staffId) => `${BASE_URL}/staffs/${staffId}/avatar`,
-    GET_AVATAR: (staffId) => `${BASE_URL}/staffs/${staffId}/avatar`,
+    FETCH_ALL: `/staffs`,
+    FETCH_BY_ID: (staffId) => `/staffs/${staffId}`,
+    CREATE: `/staffs`,
+    UPDATE: (staffId) => `/staffs/${staffId}`,
+    DELETE: (staffId) => `/staffs/${staffId}`,
+    UPLOAD_AVATAR: (staffId) => `/staffs/${staffId}/avatar`,
+    DELETE_AVATAR: (staffId) => `/staffs/${staffId}/avatar`,
+    INVITE_STAFF: `/staffs/invite`,
 };
 
 export const CSRF_ENDPOINTS = {

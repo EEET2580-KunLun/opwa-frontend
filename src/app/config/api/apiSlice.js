@@ -47,7 +47,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 
                     if (refreshResult?.data?.meta?.status === 200) {
                         // Successfully refreshed, update auth state
-                        api.dispatch(login(refreshResult.data.data));
+                        api.dispatch(login(refreshResult));
 
                         // Retry the original query with new token
                         result = await baseQuery(args, api, extraOptions);

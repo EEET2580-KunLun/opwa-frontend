@@ -6,16 +6,19 @@ import SideBar from "./SideBar.jsx";
 import StaffGridTable from "./StaffGridTable.jsx";
 import SearchBar from "./SearchBar.jsx";
 import { useStaffList } from "../hooks/useStaffList.js";
+import {useSelector} from "react-redux";
+import {selectStaffs} from "../store/staffSlice.js";
 
 const StaffManagement = () => {
     const [activeTab, setActiveTab] = useState('active');
+    const staffLists = useSelector(selectStaffs);
 
     // Use the hook
-    const { staff, loading, fetchStaffList } = useStaffList();
+    const {loading, fetchStaffList } = useStaffList();
 
     // Fetch staff data when component mounts
     useEffect(() => {
-        fetchStaffList().then(r => console.log(r));
+        fetchStaffList();
     }, []);
 
     return (
@@ -58,8 +61,8 @@ const StaffManagement = () => {
 
                         {loading ? (
                             <div className="text-center py-4">Loading staff data...</div>
-                        ) : staff ? (
-                            <StaffGridTable staffData={staff} />
+                        ) : staffLists && staffLists.length > 0 ? (
+                            <StaffGridTable staffData={staffLists} />
                         ) : (
                             <div className="text-center py-4">No staff data available</div>
                         )}

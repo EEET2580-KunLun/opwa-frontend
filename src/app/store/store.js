@@ -6,6 +6,7 @@ import { encryptTransform } from 'redux-persist-transform-encrypt';
 import { combineReducers } from 'redux';
 import authReducer from '../../modules/auth/store/authSlice';
 import {apiSlice} from "../config/api/apiSlice.js";
+import staffReducer from '../../modules/staff/store/staffSlice';
 
 // Create the encryption transform
 const encryptor = encryptTransform({
@@ -30,7 +31,8 @@ const persistConfig = {
 const persistedReducer = persistReducer(persistConfig,
     combineReducers({
         auth: authReducer,
-        [apiSlice.reducerPath]: apiSlice.reducer
+        [apiSlice.reducerPath]: apiSlice.reducer,
+        staff: staffReducer,
     })
 );
 
