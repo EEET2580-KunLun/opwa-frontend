@@ -12,12 +12,24 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.4.11",
     "@mui/material": "^6.4.8",
+    "@popperjs/core": "^2.11.8",
+    "@reduxjs/toolkit": "^2.7.0",
     "axios": "^1.8.4",
     "bootstrap": "^5.3.5",
+    "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.9",
+    "react-bootstrap-icons": "^1.11.5",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.4.0"
+    "react-icons": "^5.5.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.5.1",
+    "redux": "^5.0.1",
+    "redux-persist": "^6.0.0",
+    "redux-persist-transform-encrypt": "^5.1.1",
+    "sonner": "^2.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
