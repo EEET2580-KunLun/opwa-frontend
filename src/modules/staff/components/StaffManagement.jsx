@@ -2,16 +2,18 @@ import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { PeopleFill } from 'react-bootstrap-icons';
-import SideBar from "./SideBar.jsx";
+import SideBar from "./SideBar.jsx"; // Remove SideBar import since it's in the AdminLayout
 import StaffGridTable from "./StaffGridTable.jsx";
 import SearchBar from "./SearchBar.jsx";
 import { useStaffList } from "../hooks/useStaffList.js";
 import {useSelector} from "react-redux";
 import {selectStaffs} from "../store/staffSlice.js";
+import {useNavigate} from "react-router-dom";
 
 const StaffManagement = () => {
     const [activeTab, setActiveTab] = useState('active');
     const staffLists = useSelector(selectStaffs);
+    const navigate = useNavigate();
 
     // Use the hook
     const {loading, fetchStaffList } = useStaffList();
@@ -24,13 +26,16 @@ const StaffManagement = () => {
     return (
         <Container fluid className="p-0">
             <Row className="g-0">
-                <SideBar/>
                 {/* Main content */}
                 <Col md={10} className="bg-light-subtle">
                     <div className="p-4">
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <h2 className="mb-0">Staff Account Management</h2>
-                            <Button variant="purple" className="d-flex align-items-center" style={{ backgroundColor: '#8e44ad', borderColor: '#8e44ad' }}>
+                            <Button
+                                variant="purple"
+                                className="d-flex align-items-center"
+                                style={{ backgroundColor: '#8e44ad', borderColor: '#8e44ad' }}
+                                onClick={() => navigate('/admin/staff/create')}>
                                 <PeopleFill className="me-2" />
                                 Register new staff
                             </Button>

@@ -8,6 +8,8 @@ const WelcomeUI = lazy(() => import('../../modules/auth/component/welcoming/Welc
 const About = lazy(() => import('../../modules/auth/component/welcoming/About.jsx'));
 const Login = lazy(() => import('../../modules/auth/component/welcoming/Login.jsx'));
 const ForgotPassword = lazy(() => import('../../modules/auth/component/ForgotPassword.jsx'));
+const StaffCreationForm = lazy(() => import('../../modules/staff/components/StaffCreationForm.jsx'));
+const StaffProfile = lazy(() => import('../../modules/staff/components/StaffProfile.jsx'));
 
 const TestingAdminDashboard = lazy(() => import('../../modules/auth/testing/TestingAdminDashboard.jsx')); // for testing purpose only
 const RouteConfig = () => {
@@ -25,6 +27,8 @@ const RouteConfig = () => {
                 <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN']} />}>
                     <Route path="/admin/dashboard" element={<StaffManagement />} />
                     <Route path="/admin/staff" element={<StaffManagement />} />
+                    <Route path="admin/staff/create" element={<StaffCreationForm />} />
+                    <Route path="admin/staff/profile/:id" element={<StaffProfile />} />
                 </Route>
 
                 {/* Operator Routes */}

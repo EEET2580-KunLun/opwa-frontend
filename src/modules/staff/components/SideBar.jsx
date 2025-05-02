@@ -1,32 +1,35 @@
 import {Button, Col, Nav} from "react-bootstrap";
 import {Person} from "react-bootstrap-icons";
 import React from "react";
+import './layout/AdminStyles.css';
 
 const SideBar = () => {
     return(
-        <Col md={2} className="bg-light min-vh-100 border-end">
+        // className="bg-light min-vh-100 border-end"
+        <div className="sidebar-container bg-white d-flex flex-column justify-content-between border-end">
             <div className="p-3">
-                <Button variant="primary" className="w-100 mb-3">View staff</Button>
-                <Nav className="flex-column">
-                    <Nav.Link className="px-0">Metro Lines Management</Nav.Link>
-                    <Nav.Link className="px-0 fw-bold">View staff</Nav.Link>
-                    <Nav.Link className="px-0">Dashboard</Nav.Link>
+                <Nav className="flex-column sidebar-nav">
+                    <Nav.Link className="sidebar-link fw-bold">Staff Management</Nav.Link>
+                    <Nav.Link className="sidebar-link">Metro Lines Management</Nav.Link>
+                    <Nav.Link className="sidebar-link fw-bold">View staff</Nav.Link>
+                    <Nav.Link className="sidebar-link">Dashboard</Nav.Link>
                 </Nav>
             </div>
-            <div className="position-absolute bottom-0 start-0 w-100 border-top p-3">
-                <div className="d-flex align-items-center mb-3">
-                    <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '40px', height: '40px' }}>
+            {/*className="position-absolute bottom-0 start-0 w-100 border-top p-3"*/}
+            <div className="admin-info-container p-3 border-top">
+                <div className="d-flex align-items-center mb-2">
+                    <div className="avatar-circle me-2">
                         <Person color="white" size={24} />
                     </div>
                     <div>
                         <div className="fw-bold">Admin</div>
                     </div>
                 </div>
-                <Button variant="outline-secondary" className="w-100">
+                <Button variant="light" className="w-100 fw-semibold text-dark border rounded-pill">
                     Log out
                 </Button>
             </div>
-        </Col>
+        </div>
     )
 }
 
