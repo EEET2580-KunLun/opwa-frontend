@@ -33,6 +33,7 @@ const StaffCreationForm = () => {
     // Form state
     const [formData, setFormData] = useState({
         email: "",
+        username: "",
         password: "",
         firstName: "",
         middleName: "",
@@ -165,6 +166,15 @@ const StaffCreationForm = () => {
             newErrors.email = "Invalid email format. The email must end with '.com' or '.vn'";
         }
 
+        // Username validation
+        if (!formData.username) {
+            newErrors.username = 'Username is required';
+        } else if (formData.username.length < 6) {
+            newErrors.username = 'Username must be at least 6 characters';
+        } else if (!/^[a-zA-Z0-9]+$/.test(formData.username)) {
+            newErrors.username = 'Username must be alphanumeric';
+        }
+
         // Password validation
         if(!validatePassword(formData.password)){
             newErrors.password = "Password must be at least 8 characters and include uppercase, lowercase, digit, and special character";
@@ -256,17 +266,36 @@ const StaffCreationForm = () => {
 
         const staffFormData = new FormData();
 
+        // Add fields with fixes
         Object.keys(formData).forEach(key => {
-            // Combine address fields into a single string
+            // Skip address fields - will handle separately
             if(key.startsWith("address")){
                 return;
             }
-            staffFormData.append(key, formData[key]);
+
+            // Handle field name mapping
+            let fieldName = key;
+            let fieldValue = formData[key];
+
+            // Fix: phone -> phoneNumber
+            if (key === 'phone') {
+                fieldName = 'phoneNumber';
+            }
+
+            // Fix: convert dateOfBirth format from DD/MM/YYYY to YYYY-MM-DD
+            if (key === 'dateOfBirth') {
+                fieldValue = formData.dateOfBirth.split('/').reverse().join('-');
+            }
+
+            staffFormData.append(fieldName, fieldValue);
         });
 
-        // Create full address string
-        const fullAddress = `${formData.addressNumber} ${formData.addressStreet}, ${formData.addressWard}, ${formData.addressDistrict}, ${formData.addressCity}`;
-        staffFormData.append("address", fullAddress);
+        // Add address fields as separate form fields
+        staffFormData.append("address.number", formData.addressNumber);
+        staffFormData.append("address.street", formData.addressStreet);
+        staffFormData.append("address.ward", formData.addressWard);
+        staffFormData.append("address.district", formData.addressDistrict);
+        staffFormData.append("address.city", formData.addressCity);
 
         // Append files
         if (profilePhoto) {
@@ -279,6 +308,12 @@ const StaffCreationForm = () => {
 
         if (backIdImage) {
             staffFormData.append('backIdImage', backIdImage);
+        }
+
+        // Debug: log FormData contents
+        console.log('FormData contents:');
+        for (let [key, value] of staffFormData.entries()) {
+            console.log(key, value);
         }
 
         try {
@@ -294,6 +329,7 @@ const StaffCreationForm = () => {
             handleClearForm();
         } catch (error) {
             console.error("Failed to create staff account: ", error);
+            console.error("Error details:", error.data);
 
             setNotification({
                 open: true,
@@ -306,6 +342,7 @@ const StaffCreationForm = () => {
     const handleClearForm = () => {
         setFormData({
             email: '',
+            username: '',
             password: '',
             firstName: '',
             middleName: '',
@@ -458,6 +495,21 @@ const StaffCreationForm = () => {
                             error={!!errors.email}
                             helperText={errors.email}
                             placeholder="example@domain.com"
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Grid>
+
+                    {/* Username */}
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Username"
+                            name="username"
+                            value={formData.username}
+                            onChange={handleInputChange}
+                            error={!!errors.username}
+                            helperText={errors.username}
+                            placeholder="Username (alphanumeric, min 6 characters)"
                             InputLabelProps={{ shrink: true }}
                         />
                     </Grid>
