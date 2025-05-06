@@ -10,7 +10,7 @@ import staffReducer from '../../modules/staff/store/staffSlice';
 
 // Create the encryption transform
 const encryptor = encryptTransform({
-    secretKey: import.meta.env.REACT_APP_ENCRYPTION_KEY || 'fallback-key',
+    secretKey: import.meta.env.VITE_ENCRYPTION_KEY || 'fallback-key',
     onError: function(error) {
         // Handle encryption/decryption errors
         console.error('Encryption error:', error);
@@ -27,14 +27,34 @@ const persistConfig = {
     transforms: [encryptor]
 };
 
-// Apply persistence to the entire root reducer
-const persistedReducer = persistReducer(persistConfig,
-    combineReducers({
+// Define root reducer that handles reset
+const rootReducer = (state, action) => {
+    // Check if the action is RESET_STATE
+    if (action.type === 'RESET_STATE') {
+        // Reset the state to undefined, which will trigger the persistReducer to reset
+        state = undefined;
+    }
+
+    // Continue with the regular combined reducers
+    return combineReducers({
         auth: authReducer,
         [apiSlice.reducerPath]: apiSlice.reducer,
         staff: staffReducer,
-    })
-);
+    })(state, action);
+};
+
+// Apply persistence to the entire root reducer
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+//
+// // Apply persistence to the entire root reducer
+// const persistedReducer = persistReducer(persistConfig,
+//     combineReducers({
+//         auth: authReducer,
+//         [apiSlice.reducerPath]: apiSlice.reducer,
+//         staff: staffReducer,
+//     })
+// );
 
 // Create the Redux store
 export const store = configureStore({

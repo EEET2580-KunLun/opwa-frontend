@@ -15,7 +15,6 @@ export const useStaffList = () => {
                 return;
             }
             if (response.data?.meta?.status === 200) {
-                console.log("Staff list fetched successfully:", response.data.data);
                 dispatch(setStaff(response.data.data));
             } else {
                 console.error("Error fetching staff list:", response.data?.meta?.message);
