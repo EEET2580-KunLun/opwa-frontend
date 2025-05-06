@@ -1,9 +1,12 @@
-import {Button, Col, Nav} from "react-bootstrap";
+import {Button, Nav} from "react-bootstrap";
 import {Person} from "react-bootstrap-icons";
 import React from "react";
 import './layout/AdminStyles.css';
+import {useSideBar} from "../hooks/useSideBar.js";
 
-const SideBar = () => {
+
+const SideBar = ({user}) => {
+    const {handleLogout} = useSideBar()
     return(
         // className="bg-light min-vh-100 border-end"
         <div className="sidebar-container bg-white d-flex flex-column justify-content-between border-end">
@@ -22,10 +25,14 @@ const SideBar = () => {
                         <Person color="white" size={24} />
                     </div>
                     <div>
-                        <div className="fw-bold">Admin</div>
+                        <div className="fw-bold">{user?.username} ({user?.role})</div>
                     </div>
                 </div>
-                <Button variant="light" className="w-100 fw-semibold text-dark border rounded-pill">
+                <Button
+                    variant="light"
+                    className="w-100 fw-semibold text-dark border rounded-pill"
+                    onClick={handleLogout} // Dispatch logout action
+                >
                     Log out
                 </Button>
             </div>
