@@ -1,5 +1,5 @@
 import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react';
-import {login, logout, selectXSRFToken} from "../../../modules/auth/store/authSlice.js";
+import {setErrorCode ,login, logout, selectXSRFToken} from "../../../modules/auth/store/authSlice.js";
 import {API_CONFIG, AUTH_ENDPOINTS} from "../Api.js";
 import {store} from "../../store/store.js";
 
@@ -28,7 +28,32 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     try {
         let result = await baseQuery(args, api, extraOptions);
 
-        if (result.error?.status === 401 || result.error?.status === 403) {
+        if(result.error?.status === 403){
+            // Handle 403 Forbidden error
+            api.dispatch(setErrorCode(403));
+            return result;
+        }
+
+        if(result.error?.status === 500){
+            // Handle 500 Internal Server Error
+            api.dispatch(setErrorCode(500));
+            return result;
+        }
+
+        if(result.error?.status === 404){
+            // Handle 404 Bad Request
+            api.dispatch(setErrorCode(404));
+            return result;
+        }
+
+        if(result.error?.status === 400){
+            // Handle 400 Bad Request
+            api.dispatch(setErrorCode(400));
+            return result;
+        }
+
+        // Check if the token has expired
+        if (result.error?.status === 401) {
             // Only try to refresh once at a time
             if(!isRefreshing) {
                 isRefreshing = true;
@@ -52,11 +77,13 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
                         // Retry the original query with new token
                         result = await baseQuery(args, api, extraOptions);
                     } else {
+                        api.dispatch(setErrorCode(401));
                         // Refresh failed, log out
                         api.dispatch(logout());
                     }
                 } catch (error){
                     console.error("Token refresh failed: ", error);
+                    api.dispatch(setErrorCode(401));
                     api.dispatch(logout());
                 } finally {
                     isRefreshing = false;
@@ -81,6 +108,11 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
             // } else {
             //     api.dispatch(logout());
             // }
+            return result;
+        }
+        // none of the above errors
+        if (result.error) {
+            api.dispatch(setErrorCode(500));
         }
         return result;
     }catch(error){

@@ -1,7 +1,6 @@
 import {Button, Table} from "react-bootstrap";
-import {Person} from "react-bootstrap-icons";
 import React from "react";
-
+import {PLACEHOLDER_USER_IMAGE} from "../../../shared/constant.js";
 
 const staffGridTable = ({ staffData = [] }) => {
     // Use the default empty array if staffData is null/undefined
@@ -28,7 +27,15 @@ const staffGridTable = ({ staffData = [] }) => {
                                     <div
                                         className="bg-light rounded-circle d-flex align-items-center justify-content-center me-2"
                                         style={{width: '40px', height: '40px'}}>
-                                        <Person color="gray" size={20}/>
+                                        <img
+                                            src={typeof staff?.profile_picture === 'string' ? staff.profile_picture : PLACEHOLDER_USER_IMAGE}
+                                            alt="User Avatar"
+                                            className="avatar-img"
+                                            onError={(e) => {
+                                                e.target.onerror = null; // Prevents looping
+                                                e.target.src = PLACEHOLDER_USER_IMAGE; // Fallback image
+                                            }}
+                                        />
                                     </div>
                                     {staff.name}
                                 </div>
