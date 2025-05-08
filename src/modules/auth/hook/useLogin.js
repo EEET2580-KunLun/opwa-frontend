@@ -63,7 +63,6 @@ export const useLogin = () => {
                 const role = response.data?.data?.staff?.role;
                 switch (role) {
                     case "ADMIN":
-                        console.log("User role:", response.data.data.staff.role);
                         navigate("/admin/dashboard");
                         break;
                     case "OPERATOR":

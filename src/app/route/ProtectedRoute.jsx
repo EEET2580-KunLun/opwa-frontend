@@ -1,18 +1,19 @@
 import React from 'react';
 import {Navigate, Outlet} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
-import {selectIsAuthenticated} from "../../modules/auth/store/authSlice.js";
+import {selectIsAuthenticated, selectErrorCode} from "../../modules/auth/store/authSlice.js";
 import { selectCurrentUser } from '../../modules/auth/store/authSlice.js';
 import {useLogoutMutation} from "../../modules/auth/store/authApiSlice.js";
 import {PURGE} from "redux-persist";
 
 const ProtectedRoute = ({ allowedRoles }) => {
     const isAuthenticated  = useSelector(selectIsAuthenticated);
+    const errorCode = useSelector(selectErrorCode);
     const user = useSelector(selectCurrentUser);
     const dispatch = useDispatch();
     const [logout] = useLogoutMutation();
 
-    const handleLogout = async () => {
+    const handleLogout = React.useCallback(async () => {
         try {
             const response = await logout();
             console.log("Logout response:", response);
@@ -37,17 +38,28 @@ const ProtectedRoute = ({ allowedRoles }) => {
             result: () => null,
         });
         dispatch({ type: "RESET_STATE" });
-    };
+    }, [logout, dispatch]);
 
     React.useEffect(() => {
-        if (!isAuthenticated) {
+        if (!isAuthenticated && errorCode === null) {
             handleLogout();
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, errorCode, handleLogout]);
 
-    // Check if user is authenticated and has required role
-    if (!isAuthenticated) {
-        // If not authenticated, redirect to login page
+    // Check if error code is 500, 404, 403, 400
+    // These errors FE and BE does not work together so can be considered as server error
+    if (errorCode === 500 || errorCode === 404 || errorCode === 403 || errorCode === 400) {
+        console.log("Error code:", errorCode);
+        return <Navigate to="/500" replace />;
+    }
+
+    //token expired case
+    if (!isAuthenticated && errorCode === 401) {
+        return <Navigate to="/401" replace />;
+    }
+
+    //users logout or enter an endpoint that requires authentication
+    if (!isAuthenticated && errorCode === null) {
         return <Navigate to="/login" replace />;
     }
 
@@ -58,7 +70,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
     const hasRequiredRole = allowedRoles.includes(userRole);
 
     if (!hasRequiredRole) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/403" replace />;
     }
 
     // If authenticated and authorized, render child routes

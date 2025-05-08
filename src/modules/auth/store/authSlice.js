@@ -6,11 +6,11 @@ const authSlice = createSlice({
         XSRF_TOKEN: "none",
         isAuthenticated: false,
         user: null,
+        errorCode: null,
     },
     reducers: {
         login(state, action) {
-            const user = action.payload.data?.data.staff;
-            state.user = user;
+            state.user = action.payload.data?.data.staff;
             state.isAuthenticated = true;
         },
         logout(state) {
@@ -20,11 +20,15 @@ const authSlice = createSlice({
         setXSRFToken(state, action) {
             state.XSRF_TOKEN = action.payload;
         },
+        setErrorCode(state, action) {
+            state.errorCode = action.payload;
+        },
     }
 })
 
-export const {login, logout, setXSRFToken} = authSlice.actions;
+export const {login, logout, setXSRFToken, setErrorCode} = authSlice.actions;
 export default authSlice.reducer;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectXSRFToken = (state) => state.auth.XSRF_TOKEN;
+export const selectErrorCode = (state) => state.auth.errorCode;
