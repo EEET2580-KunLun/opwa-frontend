@@ -3,6 +3,18 @@ export const validateEmail = (email) => {
     return emailRegex.test(email);
 };
 
+export const validateUsername = (username) => {
+    if (!username) {
+        return false;
+    }
+
+    if (username.length < 6) {
+        return false;
+    }
+
+    const usernameRegex = /^[a-zA-Z0-9]+$/;
+    return usernameRegex.test(username);
+};
 
 /**
  * At least 8 characters
