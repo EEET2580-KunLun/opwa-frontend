@@ -3,6 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import {useDispatch} from 'react-redux';
 import {login as setLogin} from "../store/authSlice.js";
 import {useLoginMutation} from "../store/authApiSlice.js";
+import {toast} from "sonner";
 
 export const useLogin = () => {
     const [email, setEmail] = useState('');
@@ -61,6 +62,7 @@ export const useLogin = () => {
                 setPassword('');
 
                 const role = response.data?.data?.staff?.role;
+                toast.success("login successfully")
                 switch (role) {
                     case "ADMIN":
                         navigate("/admin/dashboard");

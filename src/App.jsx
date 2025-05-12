@@ -4,6 +4,7 @@ import PageLayout from "./modules/auth/component/welcoming/PageLayout.jsx";
 import AdminLayout from "./modules/staff/components/layout/AdminLayout.jsx";
 import RouteConfig from "./app/route/RouteConfig.jsx";
 import {Toaster} from 'sonner'
+import './App.css'
 
 // This component determines which layout to use based on the route
 const AppLayout = () => {
@@ -33,7 +34,11 @@ const AppLayout = () => {
 function App() {
     return (
         <BrowserRouter>
-            <Toaster position="top-center" />
+            <Toaster
+                position="top-center"
+                theme="light"
+                richColors
+            />
             {/*<PageLayout mainBody={<RouteConfig />} />*/}
             <AppLayout/>
         </BrowserRouter>
