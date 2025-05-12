@@ -22,11 +22,17 @@ export const STAFF_ENDPOINTS = {
     FETCH_ALL: `/staffs`,
     FETCH_BY_ID: (staffId) => `/staffs/${staffId}`,
     CREATE: `/staffs`,
-    UPDATE: (staffId) => `/staffs/${staffId}`,
-    DELETE: (staffId) => `/staffs/${staffId}`,
-    UPLOAD_AVATAR: (staffId) => `/staffs/${staffId}/avatar`,
-    DELETE_AVATAR: (staffId) => `/staffs/${staffId}/avatar`,
-    INVITE_STAFF: `/staffs/invite`,
+    CREATE_WITH_PICTURES: '/staffs/with-pictures',
+    UPDATE: (id) => `/staffs/${id}`,
+    DELETE: (id) => `/staffs/${id}`,
+    UPDATE_PROFILE: '/staffs/profile',
+    UPDATE_NATIONAL_ID: '/staffs/profile/national-id',
+    UPLOAD_AVATAR: (id) => `/staffs/${id}/avatar`,
+    DELETE_AVATAR: (id) => `/staffs/${id}/avatar`,
+    UPLOAD_ID: (id) => `/staffs/${id}/national-id`,
+    DELETE_ID: (id) => `/staffs/${id}/national-id`,
+    TOGGLE_EMPLOYMENT: (id) => `/staffs/${id}/employment`,
+    INVITE_STAFF: '/v1/staffs/invite',
 };
 
 export const CSRF_ENDPOINTS = {

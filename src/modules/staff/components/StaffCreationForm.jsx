@@ -19,7 +19,7 @@ import {Paper,
         Alert} from "@mui/material";
 import {PhotoCamera, Clear} from "@mui/icons-material";
 import {useCreateStaffMutation} from "../store/staffApiSlice.js";
-import {validateEmail, validatePassword, validateName, validateNationalID, validateAddress, validatePhone, validateDOB} from "../util/validationUtils.js";
+import {validateEmail, validatePassword, validateName, validateNationalID, validateAddress, validatePhone, validateDOB, validateUsername} from "../util/validationUtils.js";
 
 const StaffCreationForm = () => {
     const dispatch = useDispatch();
@@ -37,6 +37,7 @@ const StaffCreationForm = () => {
         firstName: "",
         middleName: "",
         lastName: "",
+        username: "",
         nationalId: "",
         role: "",
         addressNumber: "",
@@ -183,6 +184,10 @@ const StaffCreationForm = () => {
             newErrors.lastName = 'Last name must contain only letters and support Vietnamese characters';
         }
 
+        if (!validateUsername(formData.username)) {
+            newErrors.username = 'Username must be alphanumeric and at least 6 characters';
+        }
+
         // National ID validation
         if (!validateNationalID(formData.nationalId)) {
             newErrors.nationalId = 'National ID must be exactly 12 digits';
@@ -248,7 +253,7 @@ const StaffCreationForm = () => {
         if(!validateForm()){
             setNotification({
                 open: true,
-                message: "Please fix the errors below",
+                message: "Please fix the error at the field(s) marked with red",
                 severity: "error"
             });
             return;
@@ -256,29 +261,44 @@ const StaffCreationForm = () => {
 
         const staffFormData = new FormData();
 
-        Object.keys(formData).forEach(key => {
-            // Combine address fields into a single string
-            if(key.startsWith("address")){
-                return;
-            }
-            staffFormData.append(key, formData[key]);
-        });
+        // Append fields with correct names for the backend
+        staffFormData.append('email', formData.email);
+        staffFormData.append('username', formData.username);
+        staffFormData.append('password', formData.password);
+        staffFormData.append('firstName', formData.firstName);
+        staffFormData.append('middleName', formData.middleName || '');
+        staffFormData.append('lastName', formData.lastName);
+        staffFormData.append('nationalId', formData.nationalId);
+        staffFormData.append('role', formData.role);
+        staffFormData.append('phoneNumber', formData.phone);
+        staffFormData.append('dateOfBirth', formData.dateOfBirth);
+        staffFormData.append('shift', formData.shift);
+        staffFormData.append('employed', formData.employed);
 
-        // Create full address string
-        const fullAddress = `${formData.addressNumber} ${formData.addressStreet}, ${formData.addressWard}, ${formData.addressDistrict}, ${formData.addressCity}`;
-        staffFormData.append("address", fullAddress);
+        // Add address fields as separate form fields
+        staffFormData.append("address.number", formData.addressNumber);
+        staffFormData.append("address.street", formData.addressStreet);
+        staffFormData.append("address.ward", formData.addressWard);
+        staffFormData.append("address.district", formData.addressDistrict);
+        staffFormData.append("address.city", formData.addressCity);
 
-        // Append files
+        // Append files with UPDATED field names
         if (profilePhoto) {
-            staffFormData.append('profilePhoto', profilePhoto);
+            staffFormData.append('profilePicture', profilePhoto);
         }
 
         if (frontIdImage) {
-            staffFormData.append('frontIdImage', frontIdImage);
+            staffFormData.append('frontIdPicture', frontIdImage);
         }
 
         if (backIdImage) {
-            staffFormData.append('backIdImage', backIdImage);
+            staffFormData.append('backIdPicture', backIdImage);
+        }
+
+        // Debug: log FormData contents
+        console.log('FormData contents:');
+        for (let [key, value] of staffFormData.entries()) {
+            console.log(key, value);
         }
 
         try {
@@ -294,6 +314,7 @@ const StaffCreationForm = () => {
             handleClearForm();
         } catch (error) {
             console.error("Failed to create staff account: ", error);
+            console.error("Error details:", error.data);
 
             setNotification({
                 open: true,
@@ -310,6 +331,7 @@ const StaffCreationForm = () => {
             firstName: '',
             middleName: '',
             lastName: '',
+            username: '',
             nationalId: '',
             role: '',
             addressNumber: '',
@@ -359,6 +381,7 @@ const StaffCreationForm = () => {
         // clear errors
         setErrors({});
     };
+
 
     // Closes notification snackbar
     const handleCloseNotification = () => {
@@ -493,7 +516,7 @@ const StaffCreationForm = () => {
                         />
                     </Grid>
 
-                    <Grid item xs={6}>
+                    <Grid item xs={4}>
                         <TextField
                             fullWidth
                             label="Middle name"
@@ -507,7 +530,7 @@ const StaffCreationForm = () => {
                         />
                     </Grid>
 
-                    <Grid item xs={6}>
+                    <Grid item xs={4}>
                         <TextField
                             fullWidth
                             label="Last name"
@@ -517,6 +540,20 @@ const StaffCreationForm = () => {
                             error={!!errors.lastName}
                             helperText={errors.lastName}
                             placeholder="Enter last name"
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Grid>
+
+                    <Grid item xs={4}>
+                        <TextField
+                            fullWidth
+                            label="Username"
+                            name="username"
+                            value={formData.username}
+                            onChange={handleInputChange}
+                            error={!!errors.username}
+                            helperText={errors.username}
+                            placeholder="Enter username"
                             InputLabelProps={{ shrink: true }}
                         />
                     </Grid>

@@ -53,6 +53,23 @@ export const validateName = (name) => {
 };
 
 /**
+ * Username validation
+ * - Alphanumeric only (letters and numbers)
+ * - At least 6 characters
+ * - No spaces or special characters
+ */
+export const validateUsername = (username) => {
+    if (!username) {
+        return false;
+    }
+
+    // Must be at least 6 characters and alphanumeric only
+    const usernameRegex = /^[a-zA-Z0-9]{6,}$/;
+    return usernameRegex.test(username);
+};
+
+
+/**
  * 12 digits in total
  * Only numbers
  * */

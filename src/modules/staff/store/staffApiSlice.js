@@ -28,7 +28,7 @@ export const staffApiSlice = apiSlice.injectEndpoints({
                 // Check if staffData is FormData
                 if (staffData instanceof FormData) {
                     return {
-                        url: STAFF_ENDPOINTS.CREATE,
+                        url: STAFF_ENDPOINTS.CREATE_WITH_PICTURES,
                         method: "POST",
                         body: staffData,
                         formData: true,
