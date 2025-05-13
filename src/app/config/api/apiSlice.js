@@ -24,7 +24,7 @@ const baseQuery = fetchBaseQuery({
     credentials: 'include', // Include cookies in requests
 })
 
-const baseQueryWithReauth = async (args, api, extraOptions) => {
+export const baseQueryWithReauth = async (args, api, extraOptions) => {
     try {
         let result = await baseQuery(args, api, extraOptions);
 

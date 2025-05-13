@@ -7,6 +7,8 @@ import { combineReducers } from 'redux';
 import authReducer from '../../modules/auth/store/authSlice';
 import {apiSlice} from "../config/api/apiSlice.js";
 import staffReducer from '../../modules/staff/store/staffSlice';
+import lineReducer from '../../modules/line/store/lineSlice';
+import stationReducer from '../../modules/station/store/stationSlice';
 
 // Create the encryption transform
 const encryptor = encryptTransform({
@@ -40,6 +42,8 @@ const rootReducer = (state, action) => {
         auth: authReducer,
         [apiSlice.reducerPath]: apiSlice.reducer,
         staff: staffReducer,
+        line: lineReducer,
+        station: stationReducer,
     })(state, action);
 };
 
@@ -70,7 +74,8 @@ export const store = configureStore({
                 'persist/REGISTER'
             ]
         }
-    }).concat(apiSlice.middleware),
+    })
+        .concat(apiSlice.middleware),
     devTools: true
 });
 

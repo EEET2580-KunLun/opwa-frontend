@@ -265,13 +265,13 @@ const StaffCreationForm = () => {
         staffFormData.append('email', formData.email);
         staffFormData.append('username', formData.username);
         staffFormData.append('password', formData.password);
-        staffFormData.append('firstName', formData.firstName);
-        staffFormData.append('middleName', formData.middleName || '');
-        staffFormData.append('lastName', formData.lastName);
-        staffFormData.append('nationalId', formData.nationalId);
+        staffFormData.append('first_name', formData.firstName);
+        staffFormData.append('middle_name', formData.middleName || '');
+        staffFormData.append('last_name', formData.lastName);
+        staffFormData.append('national_id', formData.nationalId);
         staffFormData.append('role', formData.role);
-        staffFormData.append('phoneNumber', formData.phone);
-        staffFormData.append('dateOfBirth', formData.dateOfBirth);
+        staffFormData.append('phone_number', formData.phone);
+        staffFormData.append('date_of_birth', formData.dateOfBirth);
         staffFormData.append('shift', formData.shift);
         staffFormData.append('employed', formData.employed);
 
@@ -284,15 +284,15 @@ const StaffCreationForm = () => {
 
         // Append files with UPDATED field names
         if (profilePhoto) {
-            staffFormData.append('profilePicture', profilePhoto);
+            staffFormData.append('profile_picture', profilePhoto);
         }
 
         if (frontIdImage) {
-            staffFormData.append('frontIdPicture', frontIdImage);
+            staffFormData.append('front_id_picture', frontIdImage);
         }
 
         if (backIdImage) {
-            staffFormData.append('backIdPicture', backIdImage);
+            staffFormData.append('back_id_picture', backIdImage);
         }
 
         // Debug: log FormData contents
