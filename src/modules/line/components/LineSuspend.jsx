@@ -74,7 +74,6 @@ const LineSuspend = () => {
         }
 
         const suspensionData = {
-            line_id: id, // Changed from lineId to line_id
             reason: data.reason,
             suspension_type: data.suspension_type, // Changed from suspensionType to suspension_type
             affected_station_ids: suspensionScope === 'SPECIFIC_STATIONS' ? selectedStations : [], // Changed from affectedStationIds to affected_station_ids
@@ -82,7 +81,7 @@ const LineSuspend = () => {
         };
 
         try {
-            await suspendLine(suspensionData).unwrap();
+            await suspendLine(id, suspensionData).unwrap();
             toast.success('Line suspended successfully');
             navigate('/operator/lines');
         } catch (error) {

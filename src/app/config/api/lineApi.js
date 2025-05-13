@@ -84,8 +84,8 @@ export const lineApi = createApi({
 
         // Line Suspension
         suspendLine: builder.mutation({
-            query: (suspensionReq) => ({
-                url: '/lines/suspend',
+            query: (id, suspensionReq) => ({
+                url: `/lines/${id}/suspend`,
                 method: 'POST',
                 body: suspensionReq,
             }),
