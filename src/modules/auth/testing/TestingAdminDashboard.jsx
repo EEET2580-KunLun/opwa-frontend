@@ -1,18 +1,165 @@
+// import React from 'react';
+//
+// const TestingAdminDashboard = () => {
+//     return (
+//         <div className="container mt-5">
+//             <div className="card">
+//                 <div className="card-header bg-primary text-white">
+//                     <h2>Admin Dashboard</h2>
+//                 </div>
+//                 <div className="card-body">
+//                     <h4>Welcome to the HCMC Metro Admin Dashboard</h4>
+//                     <p>You are logged in as: <strong>{}</strong></p>
+//                     <p>This is a test dashboard for successful login.</p>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default TestingAdminDashboard;
+
+// src/modules/auth/testing/TestingAdminDashboard.jsx (Updated)
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, Button, Row, Col } from 'react-bootstrap';
+import { FaUsers, FaSubway, FaTicketAlt, FaChartBar, FaCog } from 'react-icons/fa';
 
 const TestingAdminDashboard = () => {
+    const navigate = useNavigate();
+
+    const handleNavigate = (path) => {
+        navigate(path);
+    };
+
     return (
-        <div className="container mt-5">
-            <div className="card">
-                <div className="card-header bg-primary text-white">
-                    <h2>Admin Dashboard</h2>
-                </div>
-                <div className="card-body">
-                    <h4>Welcome to the HCMC Metro Admin Dashboard</h4>
-                    <p>You are logged in as: <strong>{}</strong></p>
-                    <p>This is a test dashboard for successful login.</p>
-                </div>
-            </div>
+        <div>
+            <h2 className="mb-4">Admin Dashboard</h2>
+
+            <Row>
+                <Col md={6} lg={4} className="mb-4">
+                    <Card className="h-100 shadow-sm">
+                        <Card.Body className="d-flex flex-column">
+                            <div className="text-center mb-3">
+                                <FaUsers size={48} className="text-primary" />
+                            </div>
+                            <Card.Title className="text-center">Staff Management</Card.Title>
+                            <Card.Text className="text-muted">
+                                Manage staff accounts, roles, and permissions.
+                            </Card.Text>
+                            <div className="mt-auto">
+                                <Button
+                                    variant="primary"
+                                    className="w-100 mb-2"
+                                    onClick={() => handleNavigate('/admin/staff')}
+                                >
+                                    View Staff
+                                </Button>
+                                <Button
+                                    variant="outline-primary"
+                                    className="w-100"
+                                    onClick={() => handleNavigate('/admin/staff/create')}
+                                >
+                                    Add New Staff
+                                </Button>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+
+                <Col md={6} lg={4} className="mb-4">
+                    <Card className="h-100 shadow-sm">
+                        <Card.Body className="d-flex flex-column">
+                            <div className="text-center mb-3">
+                                <FaSubway size={48} className="text-success" />
+                            </div>
+                            <Card.Title className="text-center">Metro Line Management</Card.Title>
+                            <Card.Text className="text-muted">
+                                Manage metro lines, stations, schedules, and service disruptions.
+                            </Card.Text>
+                            <div className="mt-auto">
+                                <Button
+                                    variant="success"
+                                    className="w-100 mb-2"
+                                    onClick={() => handleNavigate('/admin/lines')}
+                                >
+                                    View Lines
+                                </Button>
+                                <Button
+                                    variant="outline-success"
+                                    className="w-100"
+                                    onClick={() => handleNavigate('/admin/lines/create')}
+                                >
+                                    Add New Line
+                                </Button>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+
+                <Col md={6} lg={4} className="mb-4">
+                    <Card className="h-100 shadow-sm">
+                        <Card.Body className="d-flex flex-column">
+                            <div className="text-center mb-3">
+                                <FaTicketAlt size={48} className="text-warning" />
+                            </div>
+                            <Card.Title className="text-center">Ticket Management</Card.Title>
+                            <Card.Text className="text-muted">
+                                Manage ticket types, pricing, and validation.
+                            </Card.Text>
+                            <Button
+                                variant="warning"
+                                className="mt-auto"
+                                onClick={() => handleNavigate('/admin/tickets')}
+                            >
+                                Manage Tickets
+                            </Button>
+                        </Card.Body>
+                    </Card>
+                </Col>
+
+                <Col md={6} lg={4} className="mb-4">
+                    <Card className="h-100 shadow-sm">
+                        <Card.Body className="d-flex flex-column">
+                            <div className="text-center mb-3">
+                                <FaChartBar size={48} className="text-info" />
+                            </div>
+                            <Card.Title className="text-center">Statistics & Reports</Card.Title>
+                            <Card.Text className="text-muted">
+                                View system statistics, revenue reports, and passenger data.
+                            </Card.Text>
+                            <Button
+                                variant="info"
+                                className="mt-auto"
+                                onClick={() => handleNavigate('/admin/statistics')}
+                            >
+                                View Reports
+                            </Button>
+                        </Card.Body>
+                    </Card>
+                </Col>
+
+                <Col md={6} lg={4} className="mb-4">
+                    <Card className="h-100 shadow-sm">
+                        <Card.Body className="d-flex flex-column">
+                            <div className="text-center mb-3">
+                                <FaCog size={48} className="text-secondary" />
+                            </div>
+                            <Card.Title className="text-center">System Settings</Card.Title>
+                            <Card.Text className="text-muted">
+                                Configure system parameters and integration settings.
+                            </Card.Text>
+                            <Button
+                                variant="secondary"
+                                className="mt-auto"
+                                onClick={() => handleNavigate('/admin/settings')}
+                            >
+                                Manage Settings
+                            </Button>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
         </div>
     );
 };

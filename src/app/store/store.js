@@ -6,6 +6,7 @@ import { encryptTransform } from 'redux-persist-transform-encrypt';
 import { combineReducers } from 'redux';
 import authReducer from '../../modules/auth/store/authSlice';
 import {apiSlice} from "../config/api/apiSlice.js";
+import { lineApi } from "../config/api/lineApi.js";
 import staffReducer from '../../modules/staff/store/staffSlice';
 
 // Create the encryption transform
@@ -40,6 +41,7 @@ const rootReducer = (state, action) => {
         auth: authReducer,
         [apiSlice.reducerPath]: apiSlice.reducer,
         staff: staffReducer,
+        [lineApi.reducerPath]: lineApi.reducer,
     })(state, action);
 };
 
@@ -70,7 +72,9 @@ export const store = configureStore({
                 'persist/REGISTER'
             ]
         }
-    }).concat(apiSlice.middleware),
+    })
+        .concat(apiSlice.middleware)
+        .concat(lineApi.middleware),
     devTools: true
 });
 
