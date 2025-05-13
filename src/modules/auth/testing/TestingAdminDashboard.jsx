@@ -1,25 +1,3 @@
-// import React from 'react';
-//
-// const TestingAdminDashboard = () => {
-//     return (
-//         <div className="container mt-5">
-//             <div className="card">
-//                 <div className="card-header bg-primary text-white">
-//                     <h2>Admin Dashboard</h2>
-//                 </div>
-//                 <div className="card-body">
-//                     <h4>Welcome to the HCMC Metro Admin Dashboard</h4>
-//                     <p>You are logged in as: <strong>{}</strong></p>
-//                     <p>This is a test dashboard for successful login.</p>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default TestingAdminDashboard;
-
-// src/modules/auth/testing/TestingAdminDashboard.jsx (Updated)
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Button, Row, Col } from 'react-bootstrap';
