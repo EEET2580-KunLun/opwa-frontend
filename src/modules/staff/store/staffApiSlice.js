@@ -1,5 +1,7 @@
 import {apiSlice} from "../../../app/config/api/apiSlice.js";
 import {STAFF_ENDPOINTS} from "../../../app/config/Api.js";
+import { convertToSnakeCase } from "../../../shared/utils.js";
+
 export const staffApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         fetchAllStaff: builder.mutation({
@@ -35,25 +37,11 @@ export const staffApiSlice = apiSlice.injectEndpoints({
                     };
                 }
 
-                // Otherwise return JSON payload
+                // Otherwise return JSON payload with snake_case keys
                 return {
                     url: STAFF_ENDPOINTS.CREATE,
                     method: 'POST',
-                    body: {
-                        email: staffData.email,
-                        username: staffData.username,
-                        password: staffData.password,
-                        first_name: staffData.firstName,
-                        middle_name: staffData.middleName,
-                        last_name: staffData.lastName,
-                        national_id: staffData.nationalId,
-                        phone_number: staffData.phoneNumber,
-                        date_of_birth: staffData.dateOfBirth,
-                        employed: staffData.employed,
-                        role: staffData.role,
-                        shift: staffData.shift,
-                        address: staffData.address
-                    },
+                    body: convertToSnakeCase(staffData),
                 };
             },
             invalidatesTags: ["Staff"]
@@ -61,8 +49,7 @@ export const staffApiSlice = apiSlice.injectEndpoints({
 
         /**
          * Used by staff members to update their own profile info
-         *
-         * */
+         */
         updateStaffProfile: builder.mutation({
             query: (staffData) => {
                 if(staffData instanceof FormData){
@@ -76,7 +63,7 @@ export const staffApiSlice = apiSlice.injectEndpoints({
                 return {
                     url: STAFF_ENDPOINTS.UPDATE_PROFILE,
                     method: "PUT",
-                    body: staffData,
+                    body: convertToSnakeCase(staffData),
                 };
             },
             invalidatesTags: ["Staff"]
@@ -95,12 +82,12 @@ export const staffApiSlice = apiSlice.injectEndpoints({
         /**
          * Used by admins to update any staff member's info
          * accessed via /v1/staffs/{id}
-         * */
+         */
         updateStaff: builder.mutation({
             query: ({ staffId, staffData }) => ({
                 url: STAFF_ENDPOINTS.UPDATE(staffId),
                 method: 'PUT',
-                body: staffData,
+                body: convertToSnakeCase(staffData),
             }),
             invalidatesTags: (result, error, { staffId }) => [
                 { type: 'Staff', id: staffId },
@@ -143,7 +130,7 @@ export const staffApiSlice = apiSlice.injectEndpoints({
             query: ({staffId, employed}) => ({
                 url: STAFF_ENDPOINTS.TOGGLE_EMPLOYMENT(staffId),
                 method: 'PATCH',
-                body: {employed},
+                body: { employed }, // Already correct since it's a single field
             }),
             invalidatesTags: (result, error, { staffId }) => [
                 { type: 'Staff', id: staffId },

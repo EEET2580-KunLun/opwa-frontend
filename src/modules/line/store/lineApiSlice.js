@@ -1,15 +1,12 @@
-import { createApi } from '@reduxjs/toolkit/query/react';
-import { baseQueryWithReauth } from './apiSlice';
+import { apiSlice } from '../../../app/config/api/apiSlice.js';
+import { LINE_ENDPOINTS } from '../../../app/config/Api.js';
+import { convertToSnakeCase } from '../../../shared/utils.js';
 
-export const lineApi = createApi({
-    reducerPath: 'lineApi',
-    baseQuery: baseQueryWithReauth,
-    tagTypes: ['Line', 'Schedule', 'Trip', 'Station'],
+export const lineApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        // Metro Lines
         getLines: builder.query({
             query: () => ({
-                url: '/lines',
+                url: LINE_ENDPOINTS.FETCH_ALL,
                 method: 'GET',
             }),
             transformResponse: (response) => response.data,
@@ -18,7 +15,7 @@ export const lineApi = createApi({
 
         getLineById: builder.query({
             query: (id) => ({
-                url: `/lines/${id}`,
+                url: LINE_ENDPOINTS.FETCH_BY_ID(id),
                 method: 'GET',
             }),
             transformResponse: (response) => response.data,
@@ -27,9 +24,9 @@ export const lineApi = createApi({
 
         createLine: builder.mutation({
             query: (line) => ({
-                url: '/lines',
+                url: LINE_ENDPOINTS.CREATE,
                 method: 'POST',
-                body: line,
+                body: convertToSnakeCase(line),
             }),
             transformResponse: (response) => response.data,
             invalidatesTags: ['Line']
@@ -37,9 +34,9 @@ export const lineApi = createApi({
 
         updateLine: builder.mutation({
             query: ({ id, ...line }) => ({
-                url: `/lines/${id}`,
+                url: LINE_ENDPOINTS.UPDATE(id),
                 method: 'PUT',
-                body: line,
+                body: convertToSnakeCase(line),
             }),
             transformResponse: (response) => response.data,
             invalidatesTags: (result, error, { id }) => [{ type: 'Line', id }, 'Line']
@@ -47,7 +44,7 @@ export const lineApi = createApi({
 
         deleteLine: builder.mutation({
             query: (id) => ({
-                url: `/lines/${id}`,
+                url: LINE_ENDPOINTS.DELETE(id),
                 method: 'DELETE',
             }),
             invalidatesTags: ['Line']
@@ -56,7 +53,7 @@ export const lineApi = createApi({
         // Line Scheduling
         generateLineSchedule: builder.mutation({
             query: (id) => ({
-                url: `/lines/${id}/schedule/generate`,
+                url: LINE_ENDPOINTS.GENERATE_SCHEDULE(id),
                 method: 'POST',
             }),
             transformResponse: (response) => response.data,
@@ -65,7 +62,7 @@ export const lineApi = createApi({
 
         getLineSchedule: builder.query({
             query: (id) => ({
-                url: `/lines/${id}/schedule/overview`,
+                url: LINE_ENDPOINTS.GET_SCHEDULE(id),
                 method: 'GET',
             }),
             transformResponse: (response) => response.data,
@@ -74,7 +71,7 @@ export const lineApi = createApi({
 
         getLineTrips: builder.query({
             query: ({ id, page = 0, size = 20 }) => ({
-                url: `/lines/${id}/trips`,
+                url: LINE_ENDPOINTS.GET_TRIPS(id),
                 method: 'GET',
                 params: { page, size },
             }),
@@ -84,23 +81,23 @@ export const lineApi = createApi({
 
         // Line Suspension
         suspendLine: builder.mutation({
-            query: (id, suspensionReq) => ({
-                url: `/lines/${id}/suspend`,
+            query: ({ id, suspensionReq }) => ({
+                url: LINE_ENDPOINTS.SUSPEND(id),
                 method: 'POST',
-                body: suspensionReq,
+                body: convertToSnakeCase(suspensionReq),
             }),
             transformResponse: (response) => response.data,
-            invalidatesTags: (result, error, { lineId }) => [
-                { type: 'Line', id: lineId },
+            invalidatesTags: (result, error, { id }) => [
+                { type: 'Line', id },
                 'Line',
-                { type: 'Trip', id: lineId },
+                { type: 'Trip', id },
                 'Trip'
             ]
         }),
 
         resumeLine: builder.mutation({
             query: (id) => ({
-                url: `/lines/${id}/resume`,
+                url: LINE_ENDPOINTS.RESUME(id),
                 method: 'POST',
             }),
             transformResponse: (response) => response.data,
@@ -114,13 +111,13 @@ export const lineApi = createApi({
 
         // Trip Search
         findTrips: builder.query({
-            query: ({ departure_station_id, arrival_station_id, departure_time }) => ({
-                url: '/lines/trips/search',
+            query: ({ departureStationId, arrivalStationId, departureTime }) => ({
+                url: LINE_ENDPOINTS.FIND_TRIPS,
                 method: 'GET',
                 params: {
-                    departure_station_id,
-                    arrival_station_id,
-                    departure_time,
+                    departure_station_id: departureStationId,
+                    arrival_station_id: arrivalStationId,
+                    departure_time: departureTime,
                 },
             }),
             transformResponse: (response) => response.data
@@ -128,62 +125,15 @@ export const lineApi = createApi({
 
         findUpcomingTrips: builder.query({
             query: ({ stationId, fromTime }) => ({
-                url: '/lines/trips/upcoming',
+                url: LINE_ENDPOINTS.FIND_UPCOMING_TRIPS,
                 method: 'GET',
                 params: {
-                    stationId,
-                    fromTime,
+                    station_id: stationId,
+                    from_time: fromTime,
                 },
             }),
             transformResponse: (response) => response.data
         }),
-
-        // Stations
-        getStations: builder.query({
-            query: () => ({
-                url: '/stations',
-                method: 'GET',
-            }),
-            transformResponse: (response) => response.data,
-            providesTags: ['Station']
-        }),
-
-        getStationById: builder.query({
-            query: (id) => ({
-                url: `/stations/${id}`,
-                method: 'GET',
-            }),
-            transformResponse: (response) => response.data,
-            providesTags: (result, error, id) => [{ type: 'Station', id }]
-        }),
-
-        createStation: builder.mutation({
-            query: (station) => ({
-                url: '/stations',
-                method: 'POST',
-                body: station,
-            }),
-            transformResponse: (response) => response.data,
-            invalidatesTags: ['Station']
-        }),
-
-        updateStation: builder.mutation({
-            query: ({ id, ...station }) => ({
-                url: `/stations/${id}`,
-                method: 'PUT',
-                body: station,
-            }),
-            transformResponse: (response) => response.data,
-            invalidatesTags: (result, error, { id }) => [{ type: 'Station', id }, 'Station']
-        }),
-
-        deleteStation: builder.mutation({
-            query: (id) => ({
-                url: `/stations/${id}`,
-                method: 'DELETE',
-            }),
-            invalidatesTags: ['Station']
-        })
     })
 });
 
@@ -200,9 +150,4 @@ export const {
     useResumeLineMutation,
     useFindTripsQuery,
     useFindUpcomingTripsQuery,
-    useGetStationsQuery,
-    useGetStationByIdQuery,
-    useCreateStationMutation,
-    useUpdateStationMutation,
-    useDeleteStationMutation
-} = lineApi;
+} = lineApiSlice;

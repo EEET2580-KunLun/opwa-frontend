@@ -22,7 +22,7 @@ import {
     FaAngleUp,
     FaInfoCircle
 } from 'react-icons/fa';
-import { useGetLinesQuery, useDeleteLineMutation, useResumeLineMutation } from '../../../app/config/api/lineApi';
+import { useGetLinesQuery, useDeleteLineMutation, useResumeLineMutation } from '../store/lineApiSlice.js';
 import DeleteConfirmModal from '../../../shared/components/DeleteConfirmModal';
 
 const LineList = () => {

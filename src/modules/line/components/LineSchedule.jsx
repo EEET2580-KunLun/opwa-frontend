@@ -25,7 +25,7 @@ import {
     useGetLineScheduleQuery,
     useGetLineTripsQuery,
     useGenerateLineScheduleMutation
-} from '../../../app/config/api/lineApi';
+} from '../store/lineApiSlice.js';
 
 const LineSchedule = () => {
     const { id } = useParams();

@@ -23,6 +23,9 @@ const LineSchedule = lazy(() => import('../../modules/line/components/LineSchedu
 const LineSuspend = lazy(() => import('../../modules/line/components/LineSuspend.jsx'));
 const LineMap = lazy(() => import('../../modules/line/components/LineMap.jsx'));
 
+const StationList = lazy(() => import('../../modules/station/components/StationList.jsx'));
+const StationForm = lazy(() => import('../../modules/station/components/StationForm.jsx'));
+
 const RouteConfig = () => {
     return(
         <Suspense fallback={<div>Loading...</div>}>
@@ -52,6 +55,10 @@ const RouteConfig = () => {
                     <Route path="/admin/lines/:id/schedule" element={<LineSchedule />} />
                     <Route path="/admin/lines/:id/suspend" element={<LineSuspend />} />
                     <Route path="/admin/lines/:id/map" element={<LineMap />} />
+
+                    <Route path="/admin/stations" element={<StationList />} />
+                    <Route path="/admin/stations/create" element={<StationForm />} />
+                    <Route path="/admin/stations/:id/edit" element={<StationForm />} />
                 </Route>
 
                 {/* Operator Routes */}

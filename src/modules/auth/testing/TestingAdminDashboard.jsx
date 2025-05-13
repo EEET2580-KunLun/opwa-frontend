@@ -78,20 +78,46 @@ const TestingAdminDashboard = () => {
                                 Manage metro lines, stations, schedules, and service disruptions.
                             </Card.Text>
                             <div className="mt-auto">
-                                <Button
-                                    variant="success"
-                                    className="w-100 mb-2"
-                                    onClick={() => handleNavigate('/admin/lines')}
-                                >
-                                    View Lines
-                                </Button>
-                                <Button
-                                    variant="outline-success"
-                                    className="w-100"
-                                    onClick={() => handleNavigate('/admin/lines/create')}
-                                >
-                                    Add New Line
-                                </Button>
+                                <Row className="mb-2">
+                                    <Col xs={6} className="pe-1">
+                                        <Button
+                                            variant="success"
+                                            className="w-100"
+                                            onClick={() => handleNavigate('/admin/lines')}
+                                        >
+                                            View Lines
+                                        </Button>
+                                    </Col>
+                                    <Col xs={6} className="ps-1">
+                                        <Button
+                                            variant="success"
+                                            className="w-100"
+                                            onClick={() => handleNavigate('/admin/stations')}
+                                        >
+                                            View Stations
+                                        </Button>
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col xs={6} className="pe-1">
+                                        <Button
+                                            variant="outline-success"
+                                            className="w-100"
+                                            onClick={() => handleNavigate('/admin/lines/create')}
+                                        >
+                                            Add Line
+                                        </Button>
+                                    </Col>
+                                    <Col xs={6} className="ps-1">
+                                        <Button
+                                            variant="outline-success"
+                                            className="w-100"
+                                            onClick={() => handleNavigate('/admin/stations/create')}
+                                        >
+                                            Add Station
+                                        </Button>
+                                    </Col>
+                                </Row>
                             </div>
                         </Card.Body>
                     </Card>

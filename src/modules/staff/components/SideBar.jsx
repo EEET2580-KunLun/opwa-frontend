@@ -49,6 +49,20 @@ const SideBar = ({user}) => {
                     >
                         Admin Panel
                     </Nav.Link>
+                     <Nav.Link
+                        as={Link}
+                        to="/admin/lines"
+                        className={`sidebar-link ${activeLink.startsWith('/admin/lines') ? 'fw-bold' : ''}`}
+                    >
+                        Line Management
+                    </Nav.Link>
+                    <Nav.Link
+                        as={Link}
+                        to="/admin/stations"
+                        className={`sidebar-link ${activeLink.startsWith('/admin/stations') ? 'fw-bold' : ''}`}
+                    >
+                        Station Management
+                    </Nav.Link>
                 </Nav>
             </div>
             <div className="admin-info-container p-3 border-top">

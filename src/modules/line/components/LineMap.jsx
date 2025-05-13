@@ -5,7 +5,7 @@ import { FaArrowLeft, FaExclamationTriangle, FaMapMarkerAlt } from 'react-icons/
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useGetLineByIdQuery } from '../../../app/config/api/lineApi';
+import { useGetLineByIdQuery } from '../store/lineApiSlice.js';
 
 // This is needed because Leaflet's default marker images are loaded relative to the CSS file
 // but in Vite/Webpack these paths are different

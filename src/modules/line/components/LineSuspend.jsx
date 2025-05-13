@@ -25,7 +25,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import {
     useGetLineByIdQuery,
     useSuspendLineMutation
-} from '../../../app/config/api/lineApi';
+} from '../store/lineApiSlice.js';
 
 const LineSuspend = () => {
     const { id } = useParams();
