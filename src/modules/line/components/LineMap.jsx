@@ -60,9 +60,16 @@ const LineMap = () => {
     useEffect(() => {
         if (line && line.stations && line.stations.length > 0) {
             // Filter stations that have coordinates
+            // Changed property names to match snake_case in backend
             const stationsWithValidCoords = line.stations
-                .filter(station => station.latitude && station.longitude)
-                .sort((a, b) => a.sequence - b.sequence);
+                .filter(station => station.location && station.location.length >= 2)
+                .sort((a, b) => a.sequence - b.sequence)
+                .map(station => ({
+                    ...station,
+                    // Extract latitude and longitude from location array [longitude, latitude]
+                    longitude: station.location[0],
+                    latitude: station.location[1]
+                }));
 
             setStationsWithCoords(stationsWithValidCoords);
 
@@ -147,11 +154,11 @@ const LineMap = () => {
                             <div className="d-flex flex-wrap gap-3 mb-2">
                                 <div className="d-flex align-items-center">
                                     <div style={{ width: 15, height: 15, backgroundColor: 'green', borderRadius: '50%' }} className="me-2"></div>
-                                    <span>Start Station: {stationsWithCoords[0]?.stationName}</span>
+                                    <span>Start Station: {stationsWithCoords[0]?.station_name}</span>
                                 </div>
                                 <div className="d-flex align-items-center">
                                     <div style={{ width: 15, height: 15, backgroundColor: 'red', borderRadius: '50%' }} className="me-2"></div>
-                                    <span>End Station: {stationsWithCoords[totalStations - 1]?.stationName}</span>
+                                    <span>End Station: {stationsWithCoords[totalStations - 1]?.station_name}</span>
                                 </div>
                                 <div className="d-flex align-items-center">
                                     <div style={{ width: 15, height: 15, backgroundColor: 'blue', borderRadius: '50%' }} className="me-2"></div>
@@ -174,19 +181,19 @@ const LineMap = () => {
 
                                 {stationsWithCoords.map((station, index) => (
                                     <Marker
-                                        key={station.stationId}
+                                        key={station.station_id || index}
                                         position={[station.latitude, station.longitude]}
                                         icon={getMarkerIcon(index, totalStations)}
                                     >
                                         <Tooltip permanent={index === 0 || index === totalStations - 1}>
-                                            {station.stationName}
+                                            {station.station_name}
                                         </Tooltip>
                                         <Popup>
                                             <div>
-                                                <strong>{station.stationName}</strong><br />
+                                                <strong>{station.station_name}</strong><br />
                                                 Sequence: {station.sequence + 1}<br />
                                                 {index > 0 && (
-                                                    <>Time from previous: {station.timeFromPreviousStation} minutes<br /></>
+                                                    <>Time from previous: {station.time_from_previous_station?.minutes || station.time_from_previous_station || 'N/A'} minutes<br /></>
                                                 )}
                                                 Coordinates: [{station.latitude.toFixed(6)}, {station.longitude.toFixed(6)}]
                                             </div>

@@ -40,8 +40,8 @@ const LineSuspend = () => {
     const { register, handleSubmit, control, formState: { errors } } = useForm({
         defaultValues: {
             reason: '',
-            suspensionType: 'EMERGENCY',
-            expectedRestorationTime: null
+            suspension_type: 'EMERGENCY', // Changed from suspensionType to suspension_type
+            expected_restoration_time: null // Changed from expectedRestorationTime to expected_restoration_time
         }
     });
 
@@ -74,11 +74,11 @@ const LineSuspend = () => {
         }
 
         const suspensionData = {
-            lineId: id,
+            line_id: id, // Changed from lineId to line_id
             reason: data.reason,
-            suspensionType: data.suspensionType,
-            affectedStationIds: suspensionScope === 'SPECIFIC_STATIONS' ? selectedStations : [],
-            expectedRestorationTime: data.expectedRestorationTime
+            suspension_type: data.suspension_type, // Changed from suspensionType to suspension_type
+            affected_station_ids: suspensionScope === 'SPECIFIC_STATIONS' ? selectedStations : [], // Changed from affectedStationIds to affected_station_ids
+            expected_restoration_time: data.expected_restoration_time // Changed from expectedRestorationTime to expected_restoration_time
         };
 
         try {
@@ -155,15 +155,15 @@ const LineSuspend = () => {
                             <Form.Group controlId="suspensionType">
                                 <Form.Label>Suspension Type</Form.Label>
                                 <Form.Select
-                                    {...register('suspensionType', { required: 'Suspension type is required' })}
-                                    isInvalid={!!errors.suspensionType}
+                                    {...register('suspension_type', { required: 'Suspension type is required' })} // Changed from suspensionType to suspension_type
+                                    isInvalid={!!errors.suspension_type} // Changed from suspensionType to suspension_type
                                 >
                                     <option value="EMERGENCY">Emergency</option>
                                     <option value="MAINTENANCE">Scheduled Maintenance</option>
                                 </Form.Select>
-                                {errors.suspensionType && (
+                                {errors.suspension_type && ( // Changed from suspensionType to suspension_type
                                     <Form.Control.Feedback type="invalid">
-                                        {errors.suspensionType.message}
+                                        {errors.suspension_type.message} {/* Changed from suspensionType to suspension_type */}
                                     </Form.Control.Feedback>
                                 )}
                             </Form.Group>
@@ -174,7 +174,7 @@ const LineSuspend = () => {
                                 <Form.Label>Expected Restoration Time (Optional)</Form.Label>
                                 <Controller
                                     control={control}
-                                    name="expectedRestorationTime"
+                                    name="expected_restoration_time" // Changed from expectedRestorationTime to expected_restoration_time
                                     render={({ field }) => (
                                         <DatePicker
                                             selected={field.value}
@@ -250,13 +250,13 @@ const LineSuspend = () => {
                                     <div className="d-flex flex-wrap gap-2">
                                         {line?.stations?.sort((a, b) => a.sequence - b.sequence).map((station) => (
                                             <Button
-                                                key={station.stationId}
-                                                variant={selectedStations.includes(station.stationId) ? 'danger' : 'outline-secondary'}
+                                                key={station.station_id} // Changed from stationId to station_id
+                                                variant={selectedStations.includes(station.station_id) ? 'danger' : 'outline-secondary'} // Changed from stationId to station_id
                                                 size="sm"
-                                                onClick={() => handleStationToggle(station.stationId)}
+                                                onClick={() => handleStationToggle(station.station_id)} // Changed from stationId to station_id
                                                 className="mb-2"
                                             >
-                                                {station.stationName}
+                                                {station.station_name} {/* Changed from stationName to station_name */}
                                             </Button>
                                         ))}
                                     </div>

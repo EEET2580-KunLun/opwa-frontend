@@ -114,13 +114,13 @@ export const lineApi = createApi({
 
         // Trip Search
         findTrips: builder.query({
-            query: ({ departureStationId, arrivalStationId, departureTime }) => ({
+            query: ({ departure_station_id, arrival_station_id, departure_time }) => ({
                 url: '/lines/trips/search',
                 method: 'GET',
                 params: {
-                    departureStationId,
-                    arrivalStationId,
-                    departureTime,
+                    departure_station_id,
+                    arrival_station_id,
+                    departure_time,
                 },
             }),
             transformResponse: (response) => response.data

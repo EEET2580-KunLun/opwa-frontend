@@ -57,13 +57,13 @@ const DraggableStationItem = ({ station, index, moveStation, onRemove, onTimeCha
             style={{ opacity: isDragging ? 0.5 : 1, cursor: 'move' }}
         >
             <td>{index + 1}</td>
-            <td>{station.stationName}</td>
+            <td>{station.station_name}</td>
             <td>
                 <Form.Control
                     type="number"
                     min="1"
                     disabled={index === 0}
-                    value={index === 0 ? 0 : station.timeFromPreviousStation || 5}
+                    value={index === 0 ? 0 : station.time_from_previous_station || 5}
                     onChange={(e) => onTimeChange(index, parseInt(e.target.value))}
                 />
             </td>
@@ -87,6 +87,7 @@ const LineForm = () => {
 
     const [selectedStations, setSelectedStations] = useState([]);
     const [stationToAdd, setStationToAdd] = useState('');
+    const [timeValue, setTimeValue] = useState(36000); // Default to 10:00 AM (36000 seconds)
 
     const {
         register,
@@ -98,7 +99,6 @@ const LineForm = () => {
     } = useForm({
         defaultValues: {
             name: '',
-            firstDepartureTime: 21600, // 6:00 AM in seconds
             frequency: 10,
             status: 'ACTIVE'
         }
@@ -123,11 +123,19 @@ const LineForm = () => {
         if (isEditing && line) {
             reset({
                 name: line.name,
-                // Convert milliseconds to seconds for TimePicker
-                firstDepartureTime: Math.floor(line.firstDepartureTime / 1000),
                 frequency: line.frequency,
                 status: line.status
             });
+
+            // Convert milliseconds to seconds for TimePicker
+            if (line.first_departure_time) {
+                const seconds = Math.floor(line.first_departure_time / 1000);
+                setTimeValue(seconds);
+
+                // Log the time value being set
+                console.log("Setting time value:", seconds);
+                console.log("Time in HH:MM:", new Date(seconds * 1000).toLocaleTimeString());
+            }
 
             // Set selected stations
             if (line.stations && line.stations.length > 0) {
@@ -136,15 +144,27 @@ const LineForm = () => {
 
                 setSelectedStations(
                     sortedStations.map(station => ({
-                        stationId: station.stationId,
-                        stationName: station.stationName,
+                        station_id: station.station_id,
+                        station_name: station.station_name,
                         sequence: station.sequence,
-                        timeFromPreviousStation: station.sequence === 0 ? 0 : station.timeFromPreviousStation
+                        time_from_previous_station: station.sequence === 0 ? 0 : station.time_from_previous_station
                     }))
                 );
             }
         }
     }, [isEditing, line, reset]);
+
+    const handleTimeChange = (seconds) => {
+        setTimeValue(seconds);
+
+        // Log the time change for debugging
+        console.log("Time changed to (seconds):", seconds);
+
+        // Create a time-only Date object to display readable time
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        console.log(`Time selected: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+    };
 
     const handleStationAdd = () => {
         if (!stationToAdd) return;
@@ -154,7 +174,7 @@ const LineForm = () => {
         if (!stationToAddObj) return;
 
         // Check if station is already selected
-        if (selectedStations.some(s => s.stationId === stationToAdd)) {
+        if (selectedStations.some(s => s.station_id === stationToAdd)) {
             toast.error('This station is already in the line');
             return;
         }
@@ -163,10 +183,10 @@ const LineForm = () => {
         setSelectedStations([
             ...selectedStations,
             {
-                stationId: stationToAddObj.id,
-                stationName: stationToAddObj.name,
+                station_id: stationToAddObj.id,
+                station_name: stationToAddObj.name,
                 sequence: selectedStations.length,
-                timeFromPreviousStation: selectedStations.length === 0 ? 0 : 5 // Default 5 minutes from previous
+                time_from_previous_station: selectedStations.length === 0 ? 0 : 5 // Default 5 minutes from previous
             }
         ]);
 
@@ -191,7 +211,7 @@ const LineForm = () => {
         const newStations = [...selectedStations];
         newStations[index] = {
             ...newStations[index],
-            timeFromPreviousStation: minutes
+            time_from_previous_station: minutes
         };
         setSelectedStations(newStations);
     };
@@ -217,19 +237,40 @@ const LineForm = () => {
             return;
         }
 
+        // Log time information for debugging
+        console.log("Time from picker (seconds):", timeValue);
+
+        // Create a time-only Date object for better time calculation
+        const hours = Math.floor(timeValue / 3600);
+        const minutes = Math.floor((timeValue % 3600) / 60);
+        console.log(`Time in HH:MM: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+
+        // Calculate milliseconds for API
+        const timeInMilliseconds = timeValue * 1000;
+        console.log("Time in milliseconds:", timeInMilliseconds);
+
+        // Verify with a date object
+        const timeDate = new Date();
+        timeDate.setHours(hours, minutes, 0, 0);
+        console.log("Time as Date object:", timeDate);
+        console.log("Readable time:", timeDate.toLocaleTimeString());
+
         // Prepare line data
         const lineData = {
             name: data.name,
-            firstDepartureTime: data.firstDepartureTime * 1000, // Convert seconds to milliseconds
+            first_departure_time: timeInMilliseconds, // Convert seconds to milliseconds
             frequency: data.frequency,
             status: data.status,
             stations: selectedStations.map(s => ({
-                stationId: s.stationId,
-                stationName: s.stationName,
+                station_id: s.station_id,
+                station_name: s.station_name,
                 sequence: s.sequence,
-                timeFromPreviousStation: s.timeFromPreviousStation
+                time_from_previous_station: s.time_from_previous_station
             }))
         };
+
+        // Log the final data being sent
+        console.log("Creating line with data:", lineData);
 
         try {
             if (isEditing) {
@@ -243,6 +284,7 @@ const LineForm = () => {
             // Navigate back to line list
             navigate('/operator/lines');
         } catch (err) {
+            console.error("Error details:", err);
             toast.error(`Failed to ${isEditing ? 'update' : 'create'} line: ${err.data?.message || 'Unknown error'}`);
         }
     };
@@ -309,26 +351,19 @@ const LineForm = () => {
                         <Col md={6}>
                             <Form.Group controlId="firstDepartureTime">
                                 <Form.Label>First Departure Time</Form.Label>
-                                <Controller
-                                    name="firstDepartureTime"
-                                    control={control}
-                                    rules={{ required: 'First departure time is required' }}
-                                    render={({ field }) => (
-                                        <TimePicker
-                                            start="05:00"
-                                            end="23:00"
-                                            step={30}
-                                            format={24}
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                        />
-                                    )}
+                                {/* Use TimePicker with our custom state */}
+                                <TimePicker
+                                    start="05:00"
+                                    end="23:00"
+                                    step={30}
+                                    format={24}
+                                    value={timeValue}
+                                    onChange={handleTimeChange}
                                 />
-                                {errors.firstDepartureTime && (
-                                    <div className="text-danger mt-1">
-                                        {errors.firstDepartureTime.message}
-                                    </div>
-                                )}
+                                <div className="text-muted mt-1">
+                                    Selected time: {Math.floor(timeValue / 3600).toString().padStart(2, '0')}:
+                                    {Math.floor((timeValue % 3600) / 60).toString().padStart(2, '0')}
+                                </div>
                             </Form.Group>
                         </Col>
                         <Col md={6}>
@@ -406,7 +441,7 @@ const LineForm = () => {
                                         <tbody>
                                         {selectedStations.map((station, index) => (
                                             <DraggableStationItem
-                                                key={station.stationId}
+                                                key={`station-${station.station_id || index}`}
                                                 station={station}
                                                 index={index}
                                                 moveStation={moveStation}

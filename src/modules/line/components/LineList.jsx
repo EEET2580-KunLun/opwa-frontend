@@ -83,8 +83,14 @@ const LineList = () => {
 
     const formatTime = (timestamp) => {
         if (!timestamp) return 'N/A';
-        const date = new Date(timestamp);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // Handle timestamp as milliseconds since midnight
+        const hours = Math.floor(timestamp / (1000 * 60 * 60));
+        const minutes = Math.floor((timestamp % (1000 * 60 * 60)) / (1000 * 60));
+
+        // Format as HH:MM AM/PM
+        return new Date(0, 0, 0, hours, minutes).toLocaleTimeString([],
+            { hour: '2-digit', minute: '2-digit' });
     };
 
     const getStatusBadge = (status) => {
@@ -170,15 +176,15 @@ const LineList = () => {
                                     <td>{line.name}</td>
                                     <td>
                                         {line.stations?.length > 0
-                                            ? line.stations.find(s => s.sequence === 0)?.stationName || 'N/A'
+                                            ? line.stations.find(s => s.sequence === 0)?.station_name || 'N/A'
                                             : 'N/A'}
                                     </td>
                                     <td>
                                         {line.stations?.length > 0
-                                            ? line.stations[line.stations.length - 1]?.stationName || 'N/A'
+                                            ? line.stations[line.stations.length - 1]?.station_name || 'N/A'
                                             : 'N/A'}
                                     </td>
-                                    <td>{formatTime(line.firstDepartureTime)}</td>
+                                    <td>{formatTime(line.first_departure_time)}</td>
                                     <td>{line.frequency} min</td>
                                     <td>{getStatusBadge(line.status)}</td>
                                     <td>
@@ -289,14 +295,14 @@ const LineList = () => {
                                                                 </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                {getSortedStations(line.stations).map((station) => (
-                                                                    <tr key={`${line.id}-${station.stationId}`}>
+                                                                {getSortedStations(line.stations).map((station, index) => (
+                                                                    <tr key={`${line.id}-station-${index}`}>
                                                                         <td>{station.sequence}</td>
-                                                                        <td>{station.stationName}</td>
+                                                                        <td>{station.station_name}</td>
                                                                         <td>
                                                                             {station.sequence === 0
                                                                                 ? 'Start Station'
-                                                                                : `${station.timeFromPreviousStation || 'N/A'} minutes`}
+                                                                                : `${station.time_from_previous_station || 'N/A'} minutes`}
                                                                         </td>
                                                                     </tr>
                                                                 ))}

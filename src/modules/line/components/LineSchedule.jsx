@@ -244,7 +244,7 @@ const LineSchedule = () => {
                         <Col md={3}>
                             <div className="mb-3">
                                 <strong>First Departure:</strong><br />
-                                {formatTime(line?.firstDepartureTime)}
+                                {formatTime(line?.first_departure_time)}
                             </div>
                         </Col>
                         <Col md={3}>
@@ -263,7 +263,7 @@ const LineSchedule = () => {
                             <div className="mb-3">
                                 <strong>End Station:</strong><br />
                                 {line?.stations?.length > 0
-                                    ? line.stations[line.stations.length - 1]?.stationName || 'N/A'
+                                    ? line.stations[line.stations.length - 1]?.station_name || 'N/A'
                                     : 'N/A'}
                             </div>
                         </Col>
