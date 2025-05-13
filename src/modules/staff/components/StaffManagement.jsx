@@ -16,6 +16,8 @@ const StaffManagement = () => {
     const staffLists = useSelector(selectStaffs);
     const navigate = useNavigate();
     const { loading, fetchStaffList } = useStaffList();
+    const activeStaffCount = staffLists.filter(staff => staff.employed).length;
+    const inactiveStaffCount = staffLists.filter(staff => !staff.employed).length;
 
     const {
         currentItems,
@@ -29,7 +31,7 @@ const StaffManagement = () => {
         itemsPerPage: 10,
         filterFn: (staff) => {
             // Base filter for active/inactive tab
-            const statusMatch = activeTab === 'active' ? staff.status !== 'INACTIVE' : staff.status === 'INACTIVE';
+            const statusMatch = activeTab === 'active' ? staff.employed : !staff.employed;
             if (!statusMatch) return false;
 
             // Advanced filters check
@@ -44,8 +46,10 @@ const StaffManagement = () => {
                         if (staff.shift !== value) return false;
                         break;
                     case 'employed':
-                        if (staff.employed !== value) return false;
-                        break;
+                        // Convert value to boolean if it's a string
+                        { const employedValue = typeof value === 'string' ? value === 'true' : !!value;
+                        if (staff.employed !== employedValue) return false;
+                        break; }
                     case 'city':
                         if (!staff.residence_address_entity?.city?.toLowerCase().includes(value.toLowerCase()))
                             return false;
@@ -101,7 +105,7 @@ const StaffManagement = () => {
                                     className={`text-decoration-none px-0 pb-2 ${activeTab === 'active' ? 'text-primary fw-bold border-bottom border-primary border-3' : 'text-secondary'}`}
                                     onClick={() => setActiveTab('active')}
                                 >
-                                    Active staff
+                                    Employed Staff <span className="badge bg-primary ms-1">{activeStaffCount}</span>
                                 </Button>
                             </div>
                             <div>
@@ -110,11 +114,11 @@ const StaffManagement = () => {
                                     className={`text-decoration-none px-0 pb-2 ${activeTab === 'inactive' ? 'text-primary fw-bold border-bottom border-primary border-3' : 'text-secondary'}`}
                                     onClick={() => setActiveTab('inactive')}
                                 >
-                                    Inactive staff
+                                    Unemployed Staff <span
+                                    className="badge bg-secondary ms-1">{inactiveStaffCount}</span>
                                 </Button>
                             </div>
                         </div>
-
                         <SearchBar
                             onSearch={setSearchTerm}
                             onFilter={setAdvancedFilters}

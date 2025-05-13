@@ -37,6 +37,7 @@ const RouteConfig = () => {
                     <Route path="/admin/dashboard" element={<TestingAdminDashboard />} />
                     <Route path="/admin/staff" element={<StaffManagement />} />
                     <Route path="admin/staff/create" element={<StaffCreationForm />} />
+                    <Route path="admin/staff/edit/:id" element={<StaffCreationForm />} />
                     <Route path="admin/staff/profile/:id" element={<StaffProfile />} />
                 </Route>
 
