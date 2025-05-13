@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, Button, Row, Col } from 'react-bootstrap';
 import { FaUsers, FaSubway, FaTicketAlt, FaChartBar, FaCog } from 'react-icons/fa';
 
-const TestingAdminDashboard = () => {
+const AdminDashboard = () => {
     const navigate = useNavigate();
 
     const handleNavigate = (path) => {
@@ -168,4 +168,4 @@ const TestingAdminDashboard = () => {
     );
 };
 
-export default TestingAdminDashboard;
+export default AdminDashboard;

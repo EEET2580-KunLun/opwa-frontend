@@ -14,7 +14,7 @@ const Login = lazy(() => import('../../modules/auth/component/welcoming/Login.js
 const ForgotPassword = lazy(() => import('../../modules/auth/component/ForgotPassword.jsx'));
 const StaffCreationForm = lazy(() => import('../../modules/staff/components/StaffCreationForm.jsx'));
 const StaffProfile = lazy(() => import('../../modules/staff/components/StaffProfile.jsx'));
-const TestingAdminDashboard = lazy(() => import('../../modules/auth/testing/TestingAdminDashboard.jsx')); // for testing purpose only
+const AdminDashboard = lazy(() => import('../../modules/auth/testing/AdminDashboard.jsx'));
 const OperatorDashboard = lazy(() => import('../../modules/auth/testing/OperatorDashboard.jsx'));
 
 const LineList = lazy(() => import('../../modules/line/components/LineList.jsx'));
@@ -44,7 +44,7 @@ const RouteConfig = () => {
 
                 {/* Admin Routes */}
                 <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN']} />}>
-                    <Route path="/admin/dashboard" element={<TestingAdminDashboard />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/staff" element={<StaffManagement />} />
                     <Route path="admin/staff/create" element={<StaffCreationForm />} />
                     <Route path="admin/staff/profile/:id" element={<StaffProfile />} />
@@ -101,7 +101,7 @@ export default RouteConfig;
 // import ForgotPassword from '../../modules/auth/component/ForgotPassword.jsx';
 // import StaffCreationForm from '../../modules/staff/components/StaffCreationForm.jsx';
 // import StaffProfile from '../../modules/staff/components/StaffProfile.jsx';
-// import TestingAdminDashboard from '../../modules/auth/testing/TestingAdminDashboard.jsx';
+// import AdminDashboard from '../../modules/auth/testing/AdminDashboard.jsx';
 // import OperatorDashboard from '../../modules/auth/testing/OperatorDashboard.jsx';
 
 // Import Line management components
@@ -119,7 +119,7 @@ const Login = lazy(() => import('../../modules/auth/component/welcoming/Login.js
 const ForgotPassword = lazy(() => import('../../modules/auth/component/ForgotPassword.jsx'));
 const StaffCreationForm = lazy(() => import('../../modules/staff/components/StaffCreationForm.jsx'));
 const StaffProfile = lazy(() => import('../../modules/staff/components/StaffProfile.jsx'));
-const TestingAdminDashboard = lazy(() => import('../../modules/auth/testing/TestingAdminDashboard.jsx'));
+const AdminDashboard = lazy(() => import('../../modules/auth/testing/AdminDashboard.jsx'));
 const OperatorDashboard = lazy(() => import('../../modules/auth/testing/OperatorDashboard.jsx'));
 
 const LineList = lazy(() => import('../../modules/line/components/LineList.jsx'));
@@ -147,7 +147,7 @@ const LineMap = lazy(() => import('../../modules/line/components/LineMap.jsx'));
 //
 //                 {/* Admin Routes */}
 //                 <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN']} />}>
-//                     <Route path="/admin/dashboard" element={<TestingAdminDashboard />} />
+//                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
 //                     <Route path="/admin/staff" element={<StaffManagement />} />
 //                     <Route path="admin/staff/create" element={<StaffCreationForm />} />
 //                     <Route path="admin/staff/profile/:id" element={<StaffProfile />} />
