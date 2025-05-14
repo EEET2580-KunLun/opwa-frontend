@@ -403,7 +403,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
         }
 
         const staffFormData = prepareFormData();
-
+        console.log(staffFormData)
         try {
             let response;
 

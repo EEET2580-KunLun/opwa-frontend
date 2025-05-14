@@ -16,7 +16,6 @@ export const AUTH_ENDPOINTS = {
     IS_OPERATOR: `/auth/operator`,
 };
 
-
 // Staff endpoints
 export const STAFF_ENDPOINTS = {
     FETCH_ALL: `/staffs`,
@@ -33,6 +32,31 @@ export const STAFF_ENDPOINTS = {
     DELETE_ID: (id) => `/staffs/${id}/national-id`,
     TOGGLE_EMPLOYMENT: (id) => `/staffs/${id}/employment`,
     INVITE_STAFF: '/v1/staffs/invite',
+};
+
+// Line endpoints
+export const LINE_ENDPOINTS = {
+    FETCH_ALL: '/lines',
+    FETCH_BY_ID: (id) => `/lines/${id}`,
+    CREATE: '/lines',
+    UPDATE: (id) => `/lines/${id}`,
+    DELETE: (id) => `/lines/${id}`,
+    GENERATE_SCHEDULE: (id) => `/lines/${id}/schedule/generate`,
+    GET_SCHEDULE: (id) => `/lines/${id}/schedule/overview`,
+    GET_TRIPS: (id) => `/lines/${id}/trips`,
+    SUSPEND: (id) => `/lines/${id}/suspend`,
+    RESUME: (id) => `/lines/${id}/resume`,
+    FIND_TRIPS: '/lines/trips/search',
+    FIND_UPCOMING_TRIPS: '/lines/trips/upcoming',
+};
+
+// Station endpoints
+export const STATION_ENDPOINTS = {
+    FETCH_ALL: '/stations',
+    FETCH_BY_ID: (id) => `/stations/${id}`,
+    CREATE: '/stations',
+    UPDATE: (id) => `/stations/${id}`,
+    DELETE: (id) => `/stations/${id}`,
 };
 
 export const CSRF_ENDPOINTS = {
