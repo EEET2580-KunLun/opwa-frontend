@@ -138,6 +138,7 @@ export const lineApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+    useGetStationsQuery,
     useGetLinesQuery,
     useGetLineByIdQuery,
     useCreateLineMutation,

@@ -47,6 +47,7 @@ const RouteConfig = () => {
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/staff" element={<StaffManagement />} />
                     <Route path="admin/staff/create" element={<StaffCreationForm />} />
+                    <Route path="admin/staff/edit/:id" element={<StaffCreationForm />} />
                     <Route path="admin/staff/profile/:id" element={<StaffProfile />} />
 
                     <Route path="/admin/lines" element={<LineList />} />
@@ -62,7 +63,7 @@ const RouteConfig = () => {
                 </Route>
 
                 {/* Operator Routes */}
-                <Route element={<ProtectedRoute allowedRoles={['OPERATOR']} />}>
+                <Route element={<ProtectedRoute allowedRoles={['OPERATOR', 'ADMIN']} />}>
                     <Route path="/operator/dashboard" element={<OperatorDashboard />} />
 
                     {/* Operator Line Management Routes */}

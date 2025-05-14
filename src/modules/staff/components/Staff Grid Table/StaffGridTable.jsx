@@ -5,25 +5,39 @@ import {selectCurrentUser} from "../../../auth/store/authSlice.js";
 import {useSelector} from "react-redux";
 import {useStaffGridTable} from "./hooks/useStaffGridTable.js";
 
+import {useNavigate} from "react-router-dom";
+
 const StaffGridTable = ({ staffData = [] }) => {
     const currentUser = useSelector(selectCurrentUser);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [staffToDelete, setStaffToDelete] = useState(null);
-    const { deleteStaff } = useStaffGridTable(staffToDelete);
+    const { deleteStaff, isLoading } = useStaffGridTable(staffToDelete || {});
+    const navigate = useNavigate();
 
     // Use the default empty array if staffData is null/undefined
-    const data = staffData || [];
-
+    const staffs = staffData || [];
 
     const handleDeleteClick = (staff) => {
         setStaffToDelete(staff);
         setShowConfirmModal(true);
     };
 
-    const ConfirmDelete = () => {
+    const confirmDelete = async () => {
         if (!staffToDelete) return;
-        deleteStaff();
-        setShowConfirmModal(false);
+
+        try {
+            await deleteStaff();
+            setShowConfirmModal(false);
+        } catch (error) {
+            console.error("Error during deletion:", error);
+        }
+    };
+
+    const handleEditClick = (staff) => {
+        // Navigate to the edit page with staff data
+        navigate(`/admin/staff/edit/${staff.id}`, {
+            state: { initialData: staff }
+        });
     };
 
 
@@ -42,8 +56,8 @@ const StaffGridTable = ({ staffData = [] }) => {
                     </tr>
                     </thead>
                     <tbody>
-                    {data.length > 0 ? (
-                        data.map(staff => {
+                    {staffs.length > 0 ? (
+                        staffs.map(staff => {
                             const isCurrentUser = currentUser.id === staff.id;
                             return (
                                 <tr key={staff.id} className={isCurrentUser ? "bg-light" : ""}>
@@ -77,7 +91,15 @@ const StaffGridTable = ({ staffData = [] }) => {
                                     <td>{staff.role}</td>
                                     <td>{staff.shift}</td>
                                     <td>
-                                        <Button variant="link" className="text-success p-0 me-3">Edit</Button>
+                                        <Button
+                                            variant="link"
+                                            className={"text-success p-0 me-3"}
+                                            onClick={() => {
+                                                handleEditClick(staff);
+                                            }}
+                                        >
+                                            Edit
+                                        </Button>
                                         <Button
                                             variant="link"
                                             className={isCurrentUser ? "text-secondary p-0" : "text-danger p-0"}
@@ -115,8 +137,12 @@ const StaffGridTable = ({ staffData = [] }) => {
                     <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
                         Cancel
                     </Button>
-                    <Button variant="danger" onClick={ConfirmDelete}>
-                        Delete
+                    <Button
+                        variant="danger"
+                        onClick={confirmDelete}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Deleting...' : 'Delete'}
                     </Button>
                 </Modal.Footer>
             </Modal>

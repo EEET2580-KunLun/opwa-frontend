@@ -87,13 +87,15 @@ export const staffApiSlice = apiSlice.injectEndpoints({
             query: ({ staffId, staffData }) => ({
                 url: STAFF_ENDPOINTS.UPDATE(staffId),
                 method: 'PUT',
-                body: convertToSnakeCase(staffData),
+                body: staffData,
+                formData: true
             }),
             invalidatesTags: (result, error, { staffId }) => [
                 { type: 'Staff', id: staffId },
                 'Staff'
             ]
         }),
+
 
         deleteStaff: builder.mutation({
             query: (staffData) => ({
