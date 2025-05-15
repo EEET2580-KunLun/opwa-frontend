@@ -64,7 +64,7 @@ const StationList = () => {
     const filteredStations = stationsData?.data?.filter(station => {
         const matchesSearch = station.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             station.address.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = showActive ? true : !station.is_active;
+        const matchesStatus = showActive ? station.active : true;
         return matchesSearch && matchesStatus;
     }) || [];
 
@@ -192,8 +192,8 @@ const StationList = () => {
                                         <TableCell>{station.address}</TableCell>
                                         <TableCell>
                                             <Chip 
-                                                label={station.is_active ? "Active" : "Inactive"} 
-                                                color={station.is_active ? "success" : "default"}
+                                                label={station.active ? "Active" : "Inactive"}
+                                                color={station.active ? "success" : "default"}
                                                 size="small"
                                             />
                                         </TableCell>
