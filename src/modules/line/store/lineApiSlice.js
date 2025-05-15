@@ -1,5 +1,5 @@
 import { apiSlice } from '../../../app/config/api/apiSlice.js';
-import { LINE_ENDPOINTS } from '../../../app/config/Api.js';
+import {LINE_ENDPOINTS, STATION_ENDPOINTS} from '../../../app/config/Api.js';
 import { convertToSnakeCase } from '../../../shared/utils.js';
 
 export const lineApiSlice = apiSlice.injectEndpoints({
@@ -20,6 +20,15 @@ export const lineApiSlice = apiSlice.injectEndpoints({
             }),
             transformResponse: (response) => response.data,
             providesTags: (result, error, id) => [{ type: 'Line', id }]
+        }),
+
+        getStations: builder.query({
+            query: () => ({
+                url: STATION_ENDPOINTS.FETCH_ALL,
+                method: 'GET',
+            }),
+            transformResponse: (response) => response.data || [],
+            providesTags: ['Station']
         }),
 
         createLine: builder.mutation({
