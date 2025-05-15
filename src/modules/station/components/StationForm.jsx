@@ -62,10 +62,12 @@ const StationForm = () => {
     useEffect(() => {
         if (isEditMode && stationData?.data) {
             const station = stationData.data;
+            console.log("Received station data:", station);
+
             setFormData({
                 name: station.name || '',
                 address: station.address || '',
-                isActive: station.is_active,
+                isActive: station.active,
                 longitude: station.location ? station.location[0].toString() : '',
                 latitude: station.location ? station.location[1].toString() : ''
             });
@@ -106,11 +108,11 @@ const StationForm = () => {
         // Validate location
         const longitude = parseFloat(formData.longitude);
         const latitude = parseFloat(formData.latitude);
-        
+
         if (isNaN(longitude) || longitude < -180 || longitude > 180) {
             newErrors.longitude = 'Longitude must be between -180 and 180';
         }
-        
+
         if (isNaN(latitude) || latitude < -90 || latitude > 90) {
             newErrors.latitude = 'Latitude must be between -90 and 90';
         }
@@ -133,12 +135,15 @@ const StationForm = () => {
         }
 
         try {
+            // Create the stationData object with snake_case keys for backend compatibility
             const stationData = {
                 name: formData.name,
                 address: formData.address,
-                isActive: formData.isActive,
+                is_active: formData.isActive, // Keep sending is_active to the backend
                 location: [parseFloat(formData.longitude), parseFloat(formData.latitude)]
             };
+
+            console.log('Sending station data to backend:', stationData);
 
             let result;
             if (isEditMode) {
@@ -157,22 +162,24 @@ const StationForm = () => {
                 });
             }
 
+            console.log('Response from backend:', result);
+
             // Navigate back to stations list after a short delay
             setTimeout(() => {
                 navigate('/admin/stations');
             }, 1500);
         } catch (error) {
             console.error('Error saving station:', error);
-            
+
             let errorMessage = 'Failed to save station';
-            
+
             // Handle authentication errors
             if (error.status === 401) {
                 errorMessage = 'Your session has expired. Please refresh the page or log in again.';
             } else if (error.data?.message) {
                 errorMessage = error.data.message;
             }
-            
+
             setNotification({
                 open: true,
                 message: errorMessage,
