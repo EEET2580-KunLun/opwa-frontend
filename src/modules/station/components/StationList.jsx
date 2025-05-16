@@ -28,12 +28,14 @@ import {
     Add as AddIcon,
     Edit as EditIcon,
     Delete as DeleteIcon,
-    Search as SearchIcon
+    Search as SearchIcon,
+    LocationOn as LocationOnIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useFetchAllStationsQuery, useDeleteStationMutation } from '../store/stationApiSlice';
 import { useDispatch } from 'react-redux';
 import { setStations, removeStation } from '../store/stationSlice';
+import MapComponent from "../../map/MapComponent.jsx";
 
 const StationList = () => {
     const navigate = useNavigate();
@@ -48,6 +50,8 @@ const StationList = () => {
     // State for delete confirmation dialog
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [stationToDelete, setStationToDelete] = useState(null);
+
+    const [selectedStationLoc, setSelectedStationLoc] = useState(null);
 
     // Fetch stations
     const { data: stationsData, isLoading, isError, refetch } = useFetchAllStationsQuery();
@@ -67,6 +71,7 @@ const StationList = () => {
         const matchesStatus = showActive ? station.active : true;
         return matchesSearch && matchesStatus;
     }) || [];
+
 
     // Pagination handlers
     const handleChangePage = (event, newPage) => {
@@ -108,6 +113,11 @@ const StationList = () => {
     const handleEditStation = (id) => {
         navigate(`/admin/stations/${id}/edit`);
     };
+
+    const handleViewOnMap = (station) => {
+        setSelectedStationLoc(station.location);
+    };
+
 
     if (isLoading) {
         return (
@@ -191,7 +201,7 @@ const StationList = () => {
                                         <TableCell>{station.name}</TableCell>
                                         <TableCell>{station.address}</TableCell>
                                         <TableCell>
-                                            <Chip 
+                                            <Chip
                                                 label={station.active ? "Active" : "Inactive"}
                                                 color={station.active ? "success" : "default"}
                                                 size="small"
@@ -201,15 +211,23 @@ const StationList = () => {
                                             {station.location ? `[${station.location[0]}, ${station.location[1]}]` : 'N/A'}
                                         </TableCell>
                                         <TableCell align="right">
-                                            <IconButton 
-                                                aria-label="edit" 
+                                            <IconButton
+                                                aria-label="view on map"
+                                                color="info"
+                                                onClick={() => handleViewOnMap(station)}
+                                                disabled={!station.location}
+                                            >
+                                                <LocationOnIcon />
+                                            </IconButton>
+                                            <IconButton
+                                                aria-label="edit"
                                                 color="primary"
                                                 onClick={() => handleEditStation(station.id)}
                                             >
                                                 <EditIcon />
                                             </IconButton>
-                                            <IconButton 
-                                                aria-label="delete" 
+                                            <IconButton
+                                                aria-label="delete"
                                                 color="error"
                                                 onClick={() => handleDeleteClick(station)}
                                             >
@@ -268,6 +286,10 @@ const StationList = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <Box sx={{ mt: 4 }}>
+                <MapComponent isStationMode={true} selectedStationLoc={selectedStationLoc} />
+            </Box>
         </Container>
     );
 };

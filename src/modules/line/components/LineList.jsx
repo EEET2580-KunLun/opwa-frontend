@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import {useDispatch} from 'react-redux';
+import {setLines} from "../store/lineSlice.js";
+
 import {
     Table,
     Button,
@@ -20,20 +23,32 @@ import {
     FaCheckCircle,
     FaAngleDown,
     FaAngleUp,
-    FaInfoCircle
+    FaInfoCircle,
+    FaMapMarkedAlt
 } from 'react-icons/fa';
 import { useGetLinesQuery, useDeleteLineMutation, useResumeLineMutation } from '../store/lineApiSlice.js';
 import DeleteConfirmModal from '../../../shared/components/DeleteConfirmModal';
+import MapComponent from "../../map/MapComponent.jsx";
 
 const LineList = () => {
     const navigate = useNavigate();
     const [expandedLine, setExpandedLine] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [lineToDelete, setLineToDelete] = useState(null);
+    const [selectedLine, setSelectedLine] = useState(null);
+    const [showMap, setShowMap] = useState(false);
+    const dispatch = useDispatch();
 
     const { data: lines, isLoading, isError, error, refetch } = useGetLinesQuery();
     const [deleteLine, { isLoading: isDeleting }] = useDeleteLineMutation();
     const [resumeLine, { isLoading: isResuming }] = useResumeLineMutation();
+
+    useEffect(() => {
+        if(lines) {
+            dispatch(setLines(lines));
+            console.log("Fetched lines:", lines);
+        }
+    },[lines, dispatch]);
 
     const handleCreateLine = () => {
         navigate('/operator/lines/create');
@@ -50,6 +65,28 @@ const LineList = () => {
     const handleSuspendLine = (lineId) => {
         navigate(`/operator/lines/${lineId}/suspend`);
     };
+
+    const handleViewMap = (line) => {
+        setSelectedLine(line);
+        setShowMap(true);
+    };
+
+    // Add a new action button in the existing actions column
+    const addMapButton = (line) => (
+        <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip>View on Map</Tooltip>}
+        >
+            <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => handleViewMap(line)}
+            >
+                <FaMapMarkedAlt />
+            </Button>
+        </OverlayTrigger>
+    );
+
 
     const handleResumeLine = async (lineId) => {
         try {
@@ -215,6 +252,8 @@ const LineList = () => {
                                                 </Button>
                                             </OverlayTrigger>
 
+                                            {addMapButton(line)}
+
                                             {line.status === 'ACTIVE' ? (
                                                 <OverlayTrigger
                                                     placement="top"
@@ -344,6 +383,28 @@ const LineList = () => {
                     </Table>
                 </Card.Body>
             </Card>
+
+            {/* Map Component */}
+            {showMap && (
+                <Card className="mb-4">
+                    <Card.Header className="d-flex justify-content-between align-items-center">
+                        <h4 className="mb-0">
+                            Metro Line Map {selectedLine && `- ${selectedLine.name}`}
+                        </h4>
+                        <Button
+                            variant="outline-secondary"
+                            onClick={() => setShowMap(false)}
+                        >
+                            Hide Map
+                        </Button>
+                    </Card.Header>
+                    <Card.Body>
+                        <div style={{ height: '1000px' }}>
+                            <MapComponent selectedTrip={selectedLine} isStationMode={false} selectedStationLoc={null}/>
+                        </div>
+                    </Card.Body>
+                </Card>
+            )}
 
             <DeleteConfirmModal
                 show={showDeleteModal}

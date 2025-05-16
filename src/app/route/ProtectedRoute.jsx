@@ -55,7 +55,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
 
     //token expired case
     if (!isAuthenticated && errorCode === 401) {
-        return <Navigate to="/401" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     //users logout or enter an endpoint that requires authentication
