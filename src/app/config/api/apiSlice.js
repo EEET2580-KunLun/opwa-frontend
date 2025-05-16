@@ -77,13 +77,13 @@ export const baseQueryWithReauth = async (args, api, extraOptions) => {
                         // Retry the original query with new token
                         result = await baseQuery(args, api, extraOptions);
                     } else {
-                        api.dispatch(setErrorCode(401));
+                        // api.dispatch(setErrorCode(401));
                         // Refresh failed, log out
                         api.dispatch(logout());
                     }
                 } catch (error){
                     console.error("Token refresh failed: ", error);
-                    api.dispatch(setErrorCode(401));
+                    // api.dispatch(setErrorCode(401));
                     api.dispatch(logout());
                 } finally {
                     isRefreshing = false;
