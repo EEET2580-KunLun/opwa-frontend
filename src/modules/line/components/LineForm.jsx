@@ -63,7 +63,7 @@ const DraggableStationItem = ({ station, index, moveStation, onRemove, onTimeCha
                     type="number"
                     min="1"
                     disabled={index === 0}
-                    value={index === 0 ? 0 : station.time_from_previous_station || 5}
+                    value={index === 0 ? 0 : station.time_from_previous_station}
                     onChange={(e) => onTimeChange(index, parseInt(e.target.value))}
                 />
             </td>
@@ -265,7 +265,7 @@ const LineForm = () => {
                 station_id: s.station_id,
                 station_name: s.station_name,
                 sequence: s.sequence,
-                time_from_previous_station: s.time_from_previous_station
+                time_from_previous_station: `PT${s.time_from_previous_station}M`
             }))
         };
 

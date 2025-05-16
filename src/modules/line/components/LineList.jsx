@@ -43,6 +43,21 @@ const LineList = () => {
     const [deleteLine, { isLoading: isDeleting }] = useDeleteLineMutation();
     const [resumeLine, { isLoading: isResuming }] = useResumeLineMutation();
 
+    const parseIsoDurationToMinutes = (iso) => {
+        if (!iso || typeof iso !== 'string') return null;
+        // Match PT<number><unit>, where unit can be H, M or S
+        const m = iso.match(/^PT(\d+)([HMS])$/);
+        if (!m) return null;
+        const value = parseInt(m[1], 10);
+        const unit  = m[2];
+        switch (unit) {
+            case 'H': return value * 60;
+            case 'M': return value;
+            case 'S': return Math.round(value / 60);
+            default:  return null;
+        }
+    };
+
     useEffect(() => {
         if(lines) {
             dispatch(setLines(lines));
@@ -341,7 +356,12 @@ const LineList = () => {
                                                                         <td>
                                                                             {station.sequence === 0
                                                                                 ? 'Start Station'
-                                                                                : `${station.time_from_previous_station || 'N/A'} minutes`}
+                                                                                : (() => {
+                                                                                    const mins = parseIsoDurationToMinutes(
+                                                                                        station.time_from_previous_station
+                                                                                    );
+                                                                                    return mins != null ? `${mins} minutes` : 'N/A';
+                                                                                })()}
                                                                         </td>
                                                                     </tr>
                                                                 ))}
