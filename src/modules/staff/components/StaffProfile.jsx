@@ -35,13 +35,6 @@ import {
 } from '../store/staffApiSlice.js';
 import { validatePhone, validateAddress, validateFileSize, validateFileType } from '../util/validationUtils.js';
 
-/**
- * Staff Profile Component
- *
- * Allows staff to view and edit their profile information based on Red Savina level requirements
- * Handles both basic profile viewing and editing functionality
- * Supports uploading and updating National ID images (front and back)
- */
 const StaffProfile = () => {
     // Get current user from Redux state or local storage
     const currentUser = JSON.parse(localStorage.getItem('user')) || {};

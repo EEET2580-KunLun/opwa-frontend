@@ -17,9 +17,12 @@ import {
     FormHelperText,
     Snackbar,
     Alert,
-    CircularProgress, FormControlLabel, Switch
+    CircularProgress,
+    FormControlLabel,
+    Switch,
 } from "@mui/material";
-import {PhotoCamera, Clear, ArrowBack} from "@mui/icons-material";
+import InputAdornment from '@mui/material/InputAdornment';
+import {PhotoCamera, Clear, ArrowBack, Visibility, VisibilityOff} from "@mui/icons-material";
 import {useCreateStaffMutation, useUpdateStaffMutation, useUploadStaffAvatarMutation} from "../store/staffApiSlice.js";
 import {
     validateEmail,
@@ -31,7 +34,6 @@ import {
     validateDOB,
     validateUsername
 } from "../util/validationUtils.js";
-import {PLACEHOLDER_USER_IMAGE} from "../../../shared/constant.js";
 
 const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitialData = null, onSuccess }) => {
     const params = useParams();
@@ -39,6 +41,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
     const navigate = useNavigate();
     const [avatarUploading, setAvatarUploading] = useState(false);
     const [avatarChanged, setAvatarChanged] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
 
     // Determine if we're in edit mode from either props or URL
@@ -55,6 +58,11 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
     const isLoading = isCreating || isUpdating;
     const fileRefs = {
         profilePhoto: useRef(null), frontId: useRef(null), backId: useRef(null)
+    };
+
+    // Handler to flip the boolean:
+    const handleTogglePassword = () => {
+        setShowPassword(show => !show);
     };
 
     // Initialize form state
@@ -98,7 +106,66 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
 
     useEffect(() => {
         handleClearForm()
-    }, [isEditMode]);
+    }, [isEditMode, routeInitialData]);
+
+    const handleBlur = (e) => {
+        const { name, value } = e.target;
+        let error = "";
+
+        switch (name) {
+            case "email":
+                if (!validateEmail(value)) {
+                    error = "Invalid email format (must end in .com or .vn)";
+                }
+                break;
+            case "password":
+                // only validate non-empty password
+                if (value && !validatePassword(value)) {
+                    error = "Password must be ≥8 chars, include uppercase, lowercase, digit & special char";
+                }
+                break;
+            case "firstName":
+            case "middleName":
+            case "lastName":
+                if (!validateName(value)) {
+                    error = "Name must only contain letters (supports Vietnamese)";
+                }
+                break;
+            case "username":
+                if (!validateUsername(value)) {
+                    error = "Username must be alphanumeric and ≥6 characters";
+                }
+                break;
+            case "nationalId":
+                if (!validateNationalID(value)) {
+                    error = "National ID must be exactly 12 digits";
+                }
+                break;
+            case "addressNumber":
+            case "addressStreet":
+            case "addressWard":
+            case "addressDistrict":
+            case "addressCity":
+                if (!validateAddress(value)) {
+                    error = "This field is required";
+                }
+                break;
+            case "phone":
+                if (!validatePhone(value)) {
+                    error = "Phone must be 10 digits starting with 0";
+                }
+                break;
+            case "dateOfBirth":
+                if (!validateDOB(value)) {
+                    error = "DOB must be dd/mm/yyyy and age ≥18";
+                }
+                break;
+            default:
+                break;
+        }
+
+        setErrors(prev => ({ ...prev, [name]: error }));
+    };
 
     // Load initial data if in edit mode
     useEffect(() => {
@@ -142,15 +209,10 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
     }, [isEditMode, initialData]);
 
     const handleInputChange = (e) => {
-        const {name, value} = e.target;
-        setFormData({
-            ...formData, [name]: value
-        });
-
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
         if (errors[name]) {
-            setErrors({
-                ...errors, [name]: ""
-            });
+            setErrors(prev => ({ ...prev, [name]: "" }));
         }
     };
 
@@ -274,7 +336,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
         }
 
         if (!validateUsername(formData.username)) {
-            newErrors.username = 'Username must be alphanumeric and at least 6 characters';
+            newErrors.username = 'Username can contain only letters, numbers, and space and maximum 20 characters';
         }
 
         // National ID validation - special handling for edit mode
@@ -635,6 +697,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.email}
                         helperText={errors.email}
                         placeholder="example@domain.com"
@@ -648,14 +711,31 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         fullWidth
                         label={isEditMode ? "Change password (leave blank to keep current)" : "Create a password"}
                         name="password"
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         value={formData.password}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.password}
                         helperText={errors.password}
                         placeholder="Password must include uppercase, lowercase, number, and special character"
                         InputLabelProps={{shrink: true}}
                         required={!isEditMode}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        onClick={handleTogglePassword}
+                                        edge="end"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword
+                                            ? <VisibilityOff />
+                                            : <Visibility />
+                                        }
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }}
                     />
                 </Grid>
 
@@ -667,6 +747,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.firstName}
                         helperText={errors.firstName}
                         placeholder="Enter first name"
@@ -681,6 +762,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="middleName"
                         value={formData.middleName}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.middleName}
                         helperText={errors.middleName}
                         placeholder="Enter middle name (optional)"
@@ -695,6 +777,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.lastName}
                         helperText={errors.lastName}
                         placeholder="Enter last name"
@@ -710,6 +793,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="username"
                         value={formData.username}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.username}
                         helperText={isEditMode ? "Username cannot be changed" : errors.username}
                         placeholder="Enter username"
@@ -735,6 +819,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="nationalId"
                         value={formData.nationalId}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.nationalId}
                         helperText={errors.nationalId}
                         placeholder="12-digit National ID"
@@ -841,6 +926,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                             name="role"
                             value={formData.role}
                             onChange={handleInputChange}
+                            onBlur={handleBlur}
                             label="Staff role"
                         >
                             <MenuItem value="ADMIN">Admin</MenuItem>
@@ -859,6 +945,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="addressNumber"
                         value={formData.addressNumber}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.addressNumber}
                         helperText={errors.addressNumber}
                         placeholder="123"
@@ -873,6 +960,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="addressStreet"
                         value={formData.addressStreet}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.addressStreet}
                         helperText={errors.addressStreet}
                         placeholder="Nguyen Van Linh"
@@ -887,6 +975,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="addressWard"
                         value={formData.addressWard}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.addressWard}
                         helperText={errors.addressWard}
                         placeholder="Tan Phong"
@@ -901,6 +990,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="addressDistrict"
                         value={formData.addressDistrict}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.addressDistrict}
                         helperText={errors.addressDistrict}
                         placeholder="District 7"
@@ -915,6 +1005,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="addressCity"
                         value={formData.addressCity}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.addressCity}
                         helperText={errors.addressCity}
                         placeholder="Ho Chi Minh City"
@@ -930,6 +1021,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.phone}
                         helperText={errors.phone}
                         placeholder="0921 123 456"
@@ -945,6 +1037,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         name="dateOfBirth"
                         value={formData.dateOfBirth}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         error={!!errors.dateOfBirth}
                         helperText={errors.dateOfBirth}
                         placeholder="21/12/1995"
