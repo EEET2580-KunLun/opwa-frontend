@@ -9,6 +9,9 @@ import {apiSlice} from "../config/api/apiSlice.js";
 import staffReducer from '../../modules/staff/store/staffSlice';
 import lineReducer from '../../modules/line/store/lineSlice';
 import stationReducer from '../../modules/station/store/stationSlice';
+import ticketReducer from '../../modules/ticket/store/ticketSlice';
+import { ticketApi } from '../../modules/ticket/store/ticketApiSlice';
+import { setupListeners } from '@reduxjs/toolkit/query';
 
 // Create the encryption transform
 const encryptor = encryptTransform({
@@ -41,9 +44,11 @@ const rootReducer = (state, action) => {
     return combineReducers({
         auth: authReducer,
         [apiSlice.reducerPath]: apiSlice.reducer,
+        [ticketApi.reducerPath]: ticketApi.reducer,
         staff: staffReducer,
         line: lineReducer,
         station: stationReducer,
+        ticket: ticketReducer,
     })(state, action);
 };
 
@@ -75,7 +80,8 @@ export const store = configureStore({
             ]
         }
     })
-        .concat(apiSlice.middleware),
+        .concat(apiSlice.middleware)
+        .concat(ticketApi.middleware),
     devTools: true
 });
 

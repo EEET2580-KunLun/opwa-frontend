@@ -59,6 +59,13 @@ export const STATION_ENDPOINTS = {
     DELETE: (id) => `/stations/${id}`,
 };
 
+export const TICKET_ENDPOINTS = {
+    TYPES: '/tickets/types',
+    PURCHASE: '/tickets/purchase',
+    HISTORY: '/tickets/history',
+    ALL: '/tickets/all'
+};
+
 export const CSRF_ENDPOINTS = {
     GET: `${BASE_URL}/csrf`,
 }

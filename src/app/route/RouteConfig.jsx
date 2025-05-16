@@ -26,6 +26,10 @@ const LineMap = lazy(() => import('../../modules/line/components/LineMap.jsx'));
 const StationList = lazy(() => import('../../modules/station/components/StationList.jsx'));
 const StationForm = lazy(() => import('../../modules/station/components/StationForm.jsx'));
 
+const TicketDashboard = lazy(() => import('../../modules/ticket/components/TicketDashboard.jsx'));
+const TicketHistory = lazy(() => import('../../modules/ticket/components/TicketHistory.jsx'));
+const TicketList = lazy(() => import('../../modules/ticket/components/TicketList.jsx'));
+
 const RouteConfig = () => {
     return(
         <Suspense fallback={<div>Loading...</div>}>
@@ -60,6 +64,9 @@ const RouteConfig = () => {
                     <Route path="/admin/stations" element={<StationList />} />
                     <Route path="/admin/stations/create" element={<StationForm />} />
                     <Route path="/admin/stations/:id/edit" element={<StationForm />} />
+
+                    <Route path="/admin/tickets" element={<TicketList />} />
+                    <Route path="/admin/tickets/history" element={<TicketHistory />} />
                 </Route>
 
                 {/* Operator Routes */}
@@ -77,7 +84,10 @@ const RouteConfig = () => {
 
                 {/* Ticket Agent Routes */}
                 <Route element={<ProtectedRoute allowedRoles={['TICKET_AGENT']} />}>
-                    {/*<Route path="/ticket-agent/dashboard" element={<TicketAgentDashboard />} />*/}
+                    <Route path="/ticket-agent/dashboard" element={<TicketDashboard />} />
+                    <Route path="/ticket-agent/tickets" element={<TicketList />} />
+                    <Route path="/ticket-agent/tickets/history" element={<TicketHistory />} />
+                    <Route path="/ticket-agent/profile" element={<StaffProfile />} />
                 </Route>
             </Routes>
         </Suspense>
