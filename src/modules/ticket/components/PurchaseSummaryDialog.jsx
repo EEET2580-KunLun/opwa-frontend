@@ -11,44 +11,54 @@ import {
     Typography,
     Alert
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
-
-const TotalText = styled(Typography)(({ theme }) => ({
-    fontWeight: 'bold',
-    marginTop: theme.spacing(2),
-}));
-
-const WarningAlert = styled(Alert)(({ theme }) => ({
-    marginTop: theme.spacing(2),
-}));
 
 export default function PurchaseSummaryDialog({ open, onClose, items, total, warning, onConfirm, disableConfirm = false }) {
     return (
-        <Dialog open={open} onClose={onClose}>
-            <DialogTitle>Purchase Summary</DialogTitle>
+
+        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+            <DialogTitle>
+                <Typography variant="h5" sx={{ fontWeight: 'bold' }}>Purchase Summary</Typography>
+            </DialogTitle>
+
             <DialogContent>
-                <List>
+                <List disablePadding>
                     {items.map(i => (
-                        <ListItem key={i.typeKey}>
+                        <ListItem key={i.typeKey} sx={{ py: 1 }}>
                             <ListItemText
                                 primary={i.name}
-                                secondary={`Qty: ${i.quantity} — Cost: ${i.quantity * i.price} VND`}
+                                secondary={`Qty: ${i.quantity} — Cost: ${(i.quantity * i.price).toLocaleString()} VND`}
                             />
                         </ListItem>
                     ))}
                 </List>
-                <TotalText><strong>Total:</strong> {total} VND</TotalText>
+
+                <Typography sx={{ fontWeight: 'bold', mt: 2 }}>
+                    Total: {total.toLocaleString()} VND
+                </Typography>
+
                 {warning && (
-                    <WarningAlert severity="error">{warning}</WarningAlert>
+                    <Alert severity="error" sx={{ mt: 2 }}>
+                        {warning}
+                    </Alert>
                 )}
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
+
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+                <Button onClick={onClose} sx={{ textTransform: 'none' }}>
+                    Cancel
+                </Button>
                 <Button
                     variant="contained"
                     onClick={onConfirm}
                     disabled={disableConfirm}
-                >ISSUE TICKETS</Button>
+                    sx={{
+                        textTransform: 'none',
+                        borderRadius: 99,
+                        px: 4
+                    }}
+                >
+                    ISSUE TICKETS
+                </Button>
             </DialogActions>
         </Dialog>
     );

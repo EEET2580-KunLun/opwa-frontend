@@ -1,28 +1,34 @@
 import React, { useState } from 'react';
-import { Tabs, Tab } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { Tabs, Tab, Box } from '@mui/material';
 import GuestPurchase from './GuestPurchase';
 import PassengerPurchase from './PassengerPurchase';
 
-const DashboardContainer = styled('div')(({ theme }) => ({
-    width: '100%',
-}));
-
-const StyledTabs = styled(Tabs)(({ theme }) => ({
-    marginBottom: theme.spacing(3),
-}));
 
 export default function TicketDashboard() {
     const [tab, setTab] = useState(0);
 
     return (
-        <DashboardContainer>
-            <StyledTabs value={tab} onChange={(_, v) => setTab(v)}>
+
+        <Box sx={{ width: '100%' }}>
+            <Tabs
+                value={tab}
+                onChange={(_, v) => setTab(v)}
+                sx={{
+                    mb: 3,
+                    '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 },
+                    '& .MuiTabs-indicator': {
+                        height: 3,
+                        borderRadius: 3,
+                        bgcolor: 'primary.main'
+                    }
+                }}
+            >
                 <Tab label="For guests" />
                 <Tab label="For passengers" />
-            </StyledTabs>
+            </Tabs>
+
             {tab === 0 && <GuestPurchase />}
             {tab === 1 && <PassengerPurchase />}
-        </DashboardContainer>
+        </Box>
     );
 }

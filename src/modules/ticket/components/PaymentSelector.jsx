@@ -1,45 +1,73 @@
 import React from 'react';
 import {
-    FormControlLabel,
-    RadioGroup,
-    Radio,
-    Typography
+    ToggleButtonGroup,
+    ToggleButton,
+    Box,
+    Typography,
+    TextField
 } from '@mui/material';
 import { PAYMENT_METHODS } from '../utils/constants';
-import {
-    PaymentMethodsContainer,
-    PaymentMethodTitle,
-    PaymentDetailsContainer,
-    CashInputField,
-    ChangeDisplay,
-    WarningText
-} from '../styles/ticketStyles';
 
 export default function PaymentSelector({ method, onSelect, balance, cashReceived = 0, onCashChange, change, warning }) {
     return (
-        <PaymentMethodsContainer>
-            <PaymentMethodTitle>Payment Methods</PaymentMethodTitle>
-            <RadioGroup value={method} onChange={e => onSelect(e.target.value)}>
-                <FormControlLabel value={PAYMENT_METHODS.EWALLET} control={<Radio />} label="E-Wallet Payment" />
-                <FormControlLabel value={PAYMENT_METHODS.CASH} control={<Radio />} label="Cash Payment" />
-            </RadioGroup>
+
+        <Box sx={{ mt: 3 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Payment Methods
+            </Typography>
+
+            {/* pill-shaped toggle */}
+            <ToggleButtonGroup
+                value={method}
+                exclusive
+                onChange={(_, val) => val && onSelect(val)}
+                sx={{
+                    width: '100%',
+                    borderRadius: 99,
+                    overflow: 'hidden',
+                    mb: 2,
+                    '& .MuiToggleButton-root': {
+                        flex: 1,
+                        border: 'none',
+                        textTransform: 'none'
+                    },
+                    '& .Mui-selected': {
+                        bgcolor: 'primary.main',
+                        color: 'common.white'
+                    }
+                }}
+            >
+                <ToggleButton value={PAYMENT_METHODS.EWALLET}>
+                    E-Wallet Payment
+                </ToggleButton>
+                <ToggleButton value={PAYMENT_METHODS.CASH}>
+                    Cash Payment
+                </ToggleButton>
+            </ToggleButtonGroup>
+
             {method === PAYMENT_METHODS.EWALLET ? (
-                <PaymentDetailsContainer>
-                    <Typography>Balance: {balance} VND</Typography>
-                </PaymentDetailsContainer>
+                <Typography>Balance: {balance.toLocaleString()} VND</Typography>
             ) : (
-                <PaymentDetailsContainer>
-                    <CashInputField
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <TextField
                         size="small"
                         type="number"
                         label="Cash Received"
                         value={cashReceived}
                         onChange={e => onCashChange(Number(e.target.value))}
+                        sx={{ flex: 1 }}
                     />
-                    <ChangeDisplay>Change: {change > 0 ? change : 0} VND</ChangeDisplay>
-                </PaymentDetailsContainer>
+                    <Typography sx={{ ml: 2 }}>
+                        Change: {Math.max(change, 0).toLocaleString()} VND
+                    </Typography>
+                </Box>
             )}
-            {warning && <WarningText>{warning}</WarningText>}
-        </PaymentMethodsContainer>
+
+            {warning && (
+                <Typography color="error" sx={{ mt: 1 }}>
+                    {warning}
+                </Typography>
+            )}
+        </Box>
     );
 }

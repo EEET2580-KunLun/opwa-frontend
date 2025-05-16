@@ -4,7 +4,9 @@ import {
     IconButton,
     InputAdornment,
     CircularProgress,
-    TextField
+    TextField,
+    Box,
+    Button
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { useGetTicketTypesQuery, useCreatePurchaseMutation } from '../store/ticketApiSlice';
@@ -18,14 +20,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '../store/ticketSlice';
 import { generateReceipt } from '../utils/receiptGenerator';
 import { validatePassengerId } from '../utils/validationUtils';
-import {
-    PageContainer,
-    SectionTitle,
-    TotalCostDisplay,
-    ActionButtonsContainer,
-    SubmitButton,
-    ClearButton
-} from '../styles/ticketStyles.js';
 
 export default function PassengerPurchase() {
     const { data: types = [] } = useGetTicketTypesQuery();
@@ -76,6 +70,7 @@ export default function PassengerPurchase() {
                 cashReceived
             }).unwrap();
 
+            //TODO: It does not appear
             enqueueSnackbar('Tickets issued successfully!', { variant: 'success' });
 
             if (result.transactionId) {
@@ -85,8 +80,7 @@ export default function PassengerPurchase() {
                     passengerId,
                     items,
                     total: totalCost,
-                    paymentMethod: method,
-                    cashReceived,
+                    paymentMethod: method, cashReceived,
                     agentId: currentUser?.id || 'AGENT'
                 });
             }
@@ -94,6 +88,7 @@ export default function PassengerPurchase() {
             // Reset full form
             resetCart();
             setPassengerId('');
+            setSummaryOpen(false);
         } catch (error) {
             console.error('Purchase failed:', error);
             enqueueSnackbar(
@@ -102,7 +97,6 @@ export default function PassengerPurchase() {
             );
         } finally {
             setIsSubmitting(false);
-            setSummaryOpen(false);
         }
     };
 
@@ -122,42 +116,39 @@ export default function PassengerPurchase() {
     };
 
     return (
-        <PageContainer>
-            <SectionTitle>Ticket Types</SectionTitle>
+
+        <Box sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
+            <Typography variant="h6" gutterBottom>Ticket Types</Typography>
+
             <TicketTypeSelector
                 types={types}
                 items={items}
                 onChange={(key, qty) => {
                     const t = types.find(x => x.key === key);
                     if (!t) return;
-                    if (qty > 0) {
-                        addItem({ typeKey: key, name: t.name, quantity: qty, price: t.price });
-                    } else {
-                        removeItem(key);
-                    }
+                    qty > 0
+                        ? addItem({ typeKey: key, name: t.name, quantity: qty, price: t.price })
+                        : removeItem(key);
                 }}
             />
 
-            <TotalCostDisplay>
+            <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold' }}>
                 Total Cost: {totalCost.toLocaleString()} VND
-            </TotalCostDisplay>
+            </Typography>
 
             <TextField
                 label="Passenger ID"
                 value={passengerId}
                 onChange={e => setPassengerId(e.target.value)}
-                error={passengerId && !idValid}
-                helperText={passengerId && !idValid ? 'Invalid Passenger ID' : ''}
+                error={passengerId !== '' && !idValid}
+                helperText={passengerId !== '' && !idValid ? 'Invalid Passenger ID' : ''}
                 fullWidth
-                margin="normal"
+                sx={{ mt: 2 }}
                 InputProps={{
                     endAdornment: (
                         <InputAdornment position="end">
                             <IconButton onClick={handleScanQR} disabled={isLoading}>
-                                {isLoading
-                                    ? <CircularProgress size={20} />
-                                    : <QrCode size={20} />
-                                }
+                                {isLoading ? <CircularProgress size={20}/> : <QrCode size={20}/>}
                             </IconButton>
                         </InputAdornment>
                     )
@@ -174,25 +165,25 @@ export default function PassengerPurchase() {
                 warning={warning}
             />
 
-            <ActionButtonsContainer>
-                <ClearButton
+            <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+                <Button
                     variant="outlined"
-                    onClick={() => {
-                        resetCart();
-                        setPassengerId('');
-                    }}
+                    fullWidth
+                    onClick={() => { resetCart(); setPassengerId(''); }}
+                    sx={{ textTransform: 'none', borderRadius: 99 }}
                 >
                     Clear Form
-                </ClearButton>
-                <SubmitButton
+                </Button>
+                <Button
                     variant="contained"
-                    color="primary"
+                    fullWidth
                     onClick={() => setSummaryOpen(true)}
                     disabled={!canConfirm || isSubmitting}
+                    sx={{ textTransform: 'none', borderRadius: 99, py: 1.5 }}
                 >
-                    {isSubmitting ? <CircularProgress size={24} /> : 'Pay Now'}
-                </SubmitButton>
-            </ActionButtonsContainer>
+                    {isSubmitting ? <CircularProgress size={24}/> : 'Pay Now'}
+                </Button>
+            </Box>
 
             <PurchaseSummaryDialog
                 open={summaryOpen}
@@ -203,6 +194,6 @@ export default function PassengerPurchase() {
                 onConfirm={handleConfirm}
                 disableConfirm={!canConfirm}
             />
-        </PageContainer>
+        </Box>
     );
 }
