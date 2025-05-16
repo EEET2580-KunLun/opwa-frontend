@@ -52,19 +52,12 @@ export const validateName = (name) => {
     return nameRegex.test(name);
 };
 
-/**
- * Username validation
- * - Alphanumeric only (letters and numbers)
- * - At least 6 characters
- * - No spaces or special characters
- */
 export const validateUsername = (username) => {
     if (!username) {
         return false;
     }
-
-    // Must be at least 6 characters and alphanumeric only
-    const usernameRegex = /^[a-zA-Z0-9]{6,}$/;
+    // Allow spaces between characters; total length max 20
+    const usernameRegex = /^[\p{L}\p{N} ]{1,20}$/u;
     return usernameRegex.test(username);
 };
 
