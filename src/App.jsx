@@ -11,7 +11,7 @@ const AppLayout = () => {
     const location = useLocation();
     // Check if the path starts with /admin, /operator, or /ticket-agent
     const isAuthenticatedRoute = /^\/(admin|operator|ticket-agent)/.test(location.pathname);
-    const isNotFoundRoute = /^\/(400|401|403|404|500)/.test(location.pathname);
+    const isNotFoundRoute = /^\/(400|401|403|404|500|map)/.test(location.pathname);
 
     if (isNotFoundRoute) {
         return <RouteConfig />;
