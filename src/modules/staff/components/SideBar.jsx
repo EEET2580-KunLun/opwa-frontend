@@ -42,13 +42,6 @@ const SideBar = ({user}) => {
                     >
                         Create Staff
                     </Nav.Link>
-                    <Nav.Link
-                        as={Link}
-                        to="/admin/abcd"
-                        className={`sidebar-link ${activeLink === '/admin/abcd' ? 'fw-bold' : ''}`}
-                    >
-                        Admin Panel
-                    </Nav.Link>
                      <Nav.Link
                         as={Link}
                         to="/admin/lines"

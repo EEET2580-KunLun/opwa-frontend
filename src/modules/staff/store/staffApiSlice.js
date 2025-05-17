@@ -4,7 +4,44 @@ import { convertToSnakeCase } from "../../../shared/utils.js";
 
 export const staffApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        fetchAllStaff: builder.mutation({
+        fetchAllStaff: builder.query({
+            query: (params = {}) => {
+                const {
+                    page = 0,
+                    size = 10,
+                    sortBy = 'firstName',
+                    direction = 'ASC',
+                    employed = null,
+                    searchTerm = ''
+                } = params;
+
+                const queryParams = {
+                    page,
+                    size,
+                    sortBy,
+                    direction
+                };
+
+                // Only add employed filter if it's specified
+                if (employed !== null) {
+                    queryParams.employed = employed;
+                }
+
+                // Add search term if provided
+                if (searchTerm) {
+                    queryParams.search = searchTerm;
+                }
+
+                return {
+                    url: STAFF_ENDPOINTS.FETCH_ALL,
+                    method: 'GET',
+                    params: queryParams
+                };
+            },
+            providesTags: ['Staff']
+        }),
+
+        fetchAllStaffMutation: builder.mutation({
             query: () => ({
                 url: STAFF_ENDPOINTS.FETCH_ALL,
                 method: 'GET',
@@ -151,6 +188,7 @@ export const staffApiSlice = apiSlice.injectEndpoints({
 })
 
 export const {
+    useFetchAllStaffQuery,
     useFetchAllStaffMutation,
     useFetchStaffByIdMutation,
     useCreateStaffMutation,

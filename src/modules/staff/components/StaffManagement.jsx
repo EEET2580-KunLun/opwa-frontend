@@ -4,82 +4,98 @@ import { Container, Row, Col, Button, Pagination } from 'react-bootstrap';
 import { PeopleFill } from 'react-bootstrap-icons';
 import StaffGridTable from "./Staff Grid Table/StaffGridTable.jsx";
 import SearchBar from "./Search Bar/SearchBar.jsx";
-import { useStaffList } from "../hooks/useStaffList.js";
-import { useSelector } from "react-redux";
-import { selectStaffs } from "../store/staffSlice.js";
+import { useDispatch } from "react-redux";
+import { setStaff } from "../store/staffSlice.js";
 import { useNavigate } from "react-router-dom";
-import { useFilterItems } from "../hooks/useFilterItems.js";
+import { useFetchAllStaffQuery } from "../store/staffApiSlice.js";
 
 const StaffManagement = () => {
-    const [activeTab, setActiveTab] = useState('active');
-    const [advancedFilters, setAdvancedFilters] = useState({});
-    const staffLists = useSelector(selectStaffs);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { loading, fetchStaffList } = useStaffList();
-    const activeStaffCount = staffLists.filter(staff => staff.employed).length;
-    const inactiveStaffCount = staffLists.filter(staff => !staff.employed).length;
-
-    const {
-        currentItems,
-        currentPage,
-        totalPages,
-        setSearchTerm,
-        setCurrentPage,
-        handlePageChange
-    } = useFilterItems({
-        items: staffLists,
-        itemsPerPage: 10,
-        filterFn: (staff) => {
-            // Base filter for active/inactive tab
-            const statusMatch = activeTab === 'active' ? staff.employed : !staff.employed;
-            if (!statusMatch) return false;
-
-            // Advanced filters check
-            for (const [key, value] of Object.entries(advancedFilters)) {
-                if (!value && value !== false) continue; // Skip empty filters
-
-                switch (key) {
-                    case 'role':
-                        if (staff.role !== value) return false;
-                        break;
-                    case 'shift':
-                        if (staff.shift !== value) return false;
-                        break;
-                    case 'employed':
-                        // Convert value to boolean if it's a string
-                        { const employedValue = typeof value === 'string' ? value === 'true' : !!value;
-                        if (staff.employed !== employedValue) return false;
-                        break; }
-                    case 'city':
-                        if (!staff.residence_address_entity?.city?.toLowerCase().includes(value.toLowerCase()))
-                            return false;
-                        break;
-                    case 'district':
-                        if (!staff.residence_address_entity?.district?.toLowerCase().includes(value.toLowerCase()))
-                            return false;
-                        break;
-                    case 'birthYearBefore':
-                        { const birthYear = new Date(staff.date_of_birth).getFullYear();
-                        if (birthYear > parseInt(value)) return false;
-                        break; }
-                    default:
-                        break;
-                }
-            }
-            return true;
-        },
-        searchFn: (staff, term) => {
-            if (term.trim() === '') return true;
-            const fullName = `${staff.first_name} ${staff.middle_name ? `${staff.middle_name} ` : ''}${staff.last_name}`;
-            return fullName.toLowerCase().includes(term.toLowerCase()) ||
-                staff.email?.toLowerCase().includes(term.toLowerCase()) ||
-                staff.username?.toLowerCase().includes(term.toLowerCase());
-        }
+    
+    // Server side pagination and sorting state
+    const [queryParams, setQueryParams] = useState({
+        page: 0,
+        size: 10,
+        sortBy: 'firstName',
+        direction: 'ASC',
+        employed: true,
+        searchTerm: ''
     });
-
+    
+    const [activeTab, setActiveTab] = useState('active');
+    
+    // Fetch data using the query hook with current parameters
+    const { 
+        data: staffResponse, 
+        isLoading, 
+        isFetching,
+        refetch
+    } = useFetchAllStaffQuery(queryParams);
+    
+    // Extract pagination data from response
+    const staffs = staffResponse?.data?.content || [];
+    const totalElements = staffResponse?.data?.total_elements || 0;
+    const totalPages = staffResponse?.data?.total_pages || 0;
+    const currentPage = staffResponse?.data?.page || 0;
+    const isLastPage = staffResponse?.data?.last || false;
+    
+    // Active and inactive counts - we should get this from a separate API call ideally
+    // For now, we'll just use the total_elements when the employed filter is applied
+    const activeStaffCount = queryParams.employed === true ? totalElements : 0;
+    const inactiveStaffCount = queryParams.employed === false ? totalElements : 0;
+    
+    // Update staff in Redux store
     useEffect(() => {
-        fetchStaffList();
-    }, []);
+        if (staffResponse?.data?.content) {
+            dispatch(setStaff(staffResponse.data.content));
+        }
+    }, [staffResponse, dispatch]);
+    
+    // Handle tab change (active/inactive)
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        setQueryParams(prev => ({
+            ...prev,
+            employed: tab === 'active',
+            page: 0 // Reset to first page
+        }));
+    };
+    
+    // Handle search
+    const handleSearch = (term) => {
+        setQueryParams(prev => ({
+            ...prev,
+            searchTerm: term,
+            page: 0 // Reset to first page
+        }));
+    };
+    
+    // Handle advanced filters
+    const handleFilter = (filters) => {
+       console.log("Advanced filters:", filters);
+    };
+    
+    // Handle sorting
+    const handleSort = (field, direction) => {
+        setQueryParams(prev => ({
+            ...prev,
+            sortBy: field,
+            direction: direction
+        }));
+    };
+    
+    // Handle page change
+    const handlePageChange = (pageNumber) => {
+        // Convert from 1-based (UI) to 0-based (API)
+        setQueryParams(prev => ({
+            ...prev,
+            page: pageNumber - 1
+        }));
+    };
+    
+    // Loading state
+    const loading = isLoading || isFetching;
 
     return (
         <Container fluid className="p-0">
@@ -103,7 +119,7 @@ const StaffManagement = () => {
                                 <Button
                                     variant="link"
                                     className={`text-decoration-none px-0 pb-2 ${activeTab === 'active' ? 'text-primary fw-bold border-bottom border-primary border-3' : 'text-secondary'}`}
-                                    onClick={() => setActiveTab('active')}
+                                    onClick={() => handleTabChange('active')}
                                 >
                                     Employed Staff <span className="badge bg-primary ms-1">{activeStaffCount}</span>
                                 </Button>
@@ -112,7 +128,7 @@ const StaffManagement = () => {
                                 <Button
                                     variant="link"
                                     className={`text-decoration-none px-0 pb-2 ${activeTab === 'inactive' ? 'text-primary fw-bold border-bottom border-primary border-3' : 'text-secondary'}`}
-                                    onClick={() => setActiveTab('inactive')}
+                                    onClick={() => handleTabChange('inactive')}
                                 >
                                     Unemployed Staff <span
                                     className="badge bg-secondary ms-1">{inactiveStaffCount}</span>
@@ -120,41 +136,53 @@ const StaffManagement = () => {
                             </div>
                         </div>
                         <SearchBar
-                            onSearch={setSearchTerm}
-                            onFilter={setAdvancedFilters}
+                            onSearch={handleSearch}
+                            onFilter={handleFilter}
                         />
 
                         {loading ? (
                             <div className="text-center py-4">Loading staff data...</div>
-                        ) : currentItems && currentItems.length > 0 ? (
-                            <StaffGridTable staffData={currentItems}/>
+                        ) : staffs.length > 0 ? (
+                            <StaffGridTable 
+                                staffData={staffs}
+                                currentSort={{
+                                    field: queryParams.sortBy,
+                                    direction: queryParams.direction
+                                }}
+                                onSort={handleSort}
+                            />
                         ) : (
                             <div className="text-center py-4">No staff data available</div>
                         )}
 
-                        <div className="pagination-controls d-flex justify-content-center mt-4">
-                            <Pagination>
-                                <Pagination.Prev
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                />
+                        {totalPages > 0 && (
+                            <div className="pagination-controls d-flex justify-content-between align-items-center mt-4">
+                                <div>
+                                    Showing {staffs.length} of {totalElements} staff members
+                                </div>
+                                <Pagination>
+                                    <Pagination.Prev
+                                        onClick={() => handlePageChange(currentPage)}
+                                        disabled={currentPage === 0}
+                                    />
 
-                                {Array.from({ length: totalPages }, (_, index) => (
-                                    <Pagination.Item
-                                        key={index + 1}
-                                        active={index + 1 === currentPage}
-                                        onClick={() => handlePageChange(index + 1)}
-                                    >
-                                        {index + 1}
-                                    </Pagination.Item>
-                                ))}
+                                    {Array.from({ length: totalPages }, (_, index) => (
+                                        <Pagination.Item
+                                            key={index + 1}
+                                            active={index === currentPage}
+                                            onClick={() => handlePageChange(index + 1)}
+                                        >
+                                            {index + 1}
+                                        </Pagination.Item>
+                                    ))}
 
-                                <Pagination.Next
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                />
-                            </Pagination>
-                        </div>
+                                    <Pagination.Next
+                                        onClick={() => handlePageChange(currentPage + 2)}
+                                        disabled={isLastPage}
+                                    />
+                                </Pagination>
+                            </div>
+                        )}
                     </div>
                 </Col>
             </Row>
