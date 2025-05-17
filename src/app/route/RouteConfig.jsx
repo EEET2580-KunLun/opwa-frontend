@@ -6,10 +6,9 @@ import Page404 from "../../shared/errorPage/404.jsx";
 import Page500 from "../../shared/errorPage/500.jsx";
 import Page403 from "../../shared/errorPage/403.jsx";
 import Page401 from "../../shared/errorPage/401.jsx";
-import TicketAnalytics from '../../modules/statistics/components/TicketAnalytics.jsx';
 import MapComponent from "../../modules/map/MapComponent.jsx";
 import OAuth2CallbackHandling from "../../modules/auth/component/OAuth2CallbackHandling.jsx";
-
+import StatisticsRoutes from '../../modules/statistics/routes/StatisticsRoutes.jsx';
 const WelcomeUI = lazy(() => import('../../modules/auth/component/welcoming/WelcomeUI.jsx'));
 const About = lazy(() => import('../../modules/auth/component/welcoming/About.jsx'));
 const Login = lazy(() => import('../../modules/auth/component/welcoming/Login.jsx'));
@@ -71,7 +70,6 @@ const RouteConfig = () => {
                     <Route path="/admin/tickets" element={<TicketList />} />
                     <Route path="/admin/tickets/history" element={<TicketHistory />} />
                     
-                    <Route path="/admin/statistics/tickets" element={<TicketAnalytics />} />
                     <Route path="/admin/profile" element={<TicketHistory />} />
                 </Route>
 
@@ -101,8 +99,9 @@ const RouteConfig = () => {
                     <Route path="/ticket-agent/tickets" element={<TicketList />} />
                     <Route path="/ticket-agent/tickets/history" element={<TicketHistory />} />
                     <Route path="/ticket-agent/profile" element={<StaffProfile />} />
-                    <Route path="/ticket-agent/tickets/analytics" element={<TicketAnalytics />} />
                 </Route>
+
+                {StatisticsRoutes}
             </Routes>
         </Suspense>
     )

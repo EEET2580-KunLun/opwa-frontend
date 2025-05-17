@@ -67,7 +67,11 @@ export const TICKET_ENDPOINTS = {
     PURCHASE: '/tickets/purchase',
     HISTORY: '/tickets/history',
     ALL: '/tickets/all',
-    ANALYTICS: '/statistics/tickets',
+};
+
+export const STATISTICS_ENDPOINTS = {
+    USERS: '/statistics/users',
+    TICKETS: '/statistics/tickets',
 };
 
 export const CSRF_ENDPOINTS = {
