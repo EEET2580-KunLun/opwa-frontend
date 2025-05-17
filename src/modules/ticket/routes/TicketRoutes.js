@@ -9,7 +9,7 @@ const GuestPurchase = lazy(() => import('../components/GuestPurchase'));
 const PassengerPurchase = lazy(() => import('../components/PassengerPurchase'));
 const TicketHistory = lazy(() => import('../components/TicketHistory'));
 const TicketDashboard = lazy(() => import('../components/TicketDashboard'));
-const TicketList = lazy(() => import('../components/TicketList'));
+const TicketList = lazy(() => import('../components/TicketList'))
 
 const withTicketTheme = (Component) => (
     <ThemeProvider theme={theme}>
@@ -36,7 +36,7 @@ const TicketRoutes = (
         </Route>
 
         {/* Admin Flow */}
-        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN, TICKET_AGENT']} />}>
+        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN', 'TICKET_AGENT']} />}>
             <Route path="/admin/tickets" element={<TicketList />} />
             <Route path="/admin/tickets/history" element={<TicketHistory />} />
         </Route>

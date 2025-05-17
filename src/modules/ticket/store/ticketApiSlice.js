@@ -1,5 +1,6 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import { TICKET_ENDPOINTS } from '../../../app/config/Api';
+import { apiSlice } from '../../../app/config/api/apiSlice';
 
 // Mock data for development
 const mockTicketTypes = [
