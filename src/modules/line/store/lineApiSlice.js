@@ -5,10 +5,33 @@ import { convertToSnakeCase } from '../../../shared/utils.js';
 export const lineApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getLines: builder.query({
-            query: () => ({
-                url: LINE_ENDPOINTS.FETCH_ALL,
-                method: 'GET',
-            }),
+            query: (params = {}) => {
+                const {
+                    page = 0,
+                    size = 10,
+                    sortBy = 'name',
+                    direction = 'ASC',
+                    searchTerm = ''
+                } = params;
+
+                const queryParams = {
+                    page,
+                    size,
+                    sortBy,
+                    direction
+                };
+
+                // Add search term if provided
+                if (searchTerm) {
+                    queryParams.search = searchTerm;
+                }
+
+                return {
+                    url: LINE_ENDPOINTS.FETCH_ALL,
+                    method: 'GET',
+                    params: queryParams
+                };
+            },
             transformResponse: (response) => response.data,
             providesTags: ['Line']
         }),
@@ -147,7 +170,6 @@ export const lineApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
-    useGetStationsQuery,
     useGetLinesQuery,
     useGetLineByIdQuery,
     useCreateLineMutation,
@@ -160,4 +182,5 @@ export const {
     useResumeLineMutation,
     useFindTripsQuery,
     useFindUpcomingTripsQuery,
+    useGetStationsQuery,
 } = lineApiSlice;

@@ -1,9 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { Form, InputGroup, Button } from 'react-bootstrap';
 import { Search, Sliders } from 'react-bootstrap-icons';
-import FilterPopup from './FilterPopup.jsx';
 
-const SearchBar = ({ onSearch, onFilter }) => {
+const SearchBar = ({ 
+    onSearch, 
+    onFilter, 
+    placeholder = "Search...",
+    showFilterButton = false,
+    FilterPopupComponent = null
+}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilterPopup, setShowFilterPopup] = useState(false);
     const [activeFilters, setActiveFilters] = useState({});
@@ -17,7 +22,10 @@ const SearchBar = ({ onSearch, onFilter }) => {
         onSearch(value);
     };
 
+    // Only used when filtering is enabled
     const handleFilterApply = (filters) => {
+        if (!onFilter) return;
+        
         setActiveFilters(filters);
 
         // Check if any filter has a value
@@ -31,6 +39,8 @@ const SearchBar = ({ onSearch, onFilter }) => {
     };
 
     const clearFilters = () => {
+        if (!onFilter) return;
+        
         setActiveFilters({});
         setHasActiveFilters(false);
         onFilter({});
@@ -41,7 +51,7 @@ const SearchBar = ({ onSearch, onFilter }) => {
             <InputGroup>
                 <Form.Control
                     type="text"
-                    placeholder="Search staff by name, email, or username..."
+                    placeholder={placeholder}
                     value={searchTerm}
                     onChange={handleInputChange}
                 />
@@ -57,18 +67,23 @@ const SearchBar = ({ onSearch, onFilter }) => {
                 >
                     {searchTerm ? <span>×</span> : <Search />}
                 </Button>
-                <Button
-                    ref={filterBtnRef}
-                    variant={hasActiveFilters ? "primary" : "outline-secondary"}
-                    onClick={() => setShowFilterPopup(prev => !prev)}
-                >
-                    <Sliders />
-                    {hasActiveFilters && <span className="ms-2 badge bg-light text-dark">Active</span>}
-                </Button>
+                
+                {/* Only show filter button if filtering is enabled */}
+                {showFilterButton && FilterPopupComponent && (
+                    <Button
+                        ref={filterBtnRef}
+                        variant={hasActiveFilters ? "primary" : "outline-secondary"}
+                        onClick={() => setShowFilterPopup(prev => !prev)}
+                    >
+                        <Sliders />
+                        {hasActiveFilters && <span className="ms-2 badge bg-light text-dark">Active</span>}
+                    </Button>
+                )}
             </InputGroup>
 
-            {showFilterPopup && (
-                <FilterPopup
+            {/* Render filter popup component if provided and shown */}
+            {showFilterPopup && FilterPopupComponent && (
+                <FilterPopupComponent
                     onClose={() => setShowFilterPopup(false)}
                     onApply={handleFilterApply}
                     onClear={clearFilters}

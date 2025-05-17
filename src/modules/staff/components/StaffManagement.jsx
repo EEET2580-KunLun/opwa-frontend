@@ -3,7 +3,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Button, Pagination, Alert } from 'react-bootstrap';
 import { PeopleFill, FilterCircleFill, XCircleFill } from 'react-bootstrap-icons';
 import StaffGridTable from "./Staff Grid Table/StaffGridTable.jsx";
-import SearchBar from "./Search Bar/SearchBar.jsx";
+import SearchBar from '../../../shared/components/SearchBar.jsx';
+import FilterPopup from './Search Bar/FilterPopup.jsx';
 import { useDispatch } from "react-redux";
 import { setStaff } from "../store/staffSlice.js";
 import { useNavigate } from "react-router-dom";
@@ -209,10 +210,13 @@ const StaffManagement = () => {
                                 </Button>
                             </div> */}
                         </div>
-                        <SearchBar
-                            onSearch={handleSearch}
-                            onFilter={handleFilter}
-                        />
+                     <SearchBar 
+                        onSearch={handleSearch}
+                        onFilter={handleFilter}
+                        placeholder="Search staff by name, email, or username..." 
+                        showFilterButton={true}
+                        FilterPopupComponent={FilterPopup}
+                    />
                         
                         {/* Client filtering indicator */}
                         {isClientFilteringActive && (
