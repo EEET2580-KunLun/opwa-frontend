@@ -162,7 +162,6 @@ const StaffManagement = () => {
     
     // Handle page change
     const handlePageChange = (pageNumber) => {
-        // Convert from 1-based (UI) to 0-based (API)
         setQueryParams(prev => ({
             ...prev,
             page: pageNumber - 1
@@ -199,7 +198,7 @@ const StaffManagement = () => {
                                     Employed Staff <span className="badge bg-primary ms-1">{activeStaffCount}</span>
                                 </Button>
                             </div>
-                            <div>
+                            {/* <div>
                                 <Button
                                     variant="link"
                                     className={`text-decoration-none px-0 pb-2 ${activeTab === 'inactive' ? 'text-primary fw-bold border-bottom border-primary border-3' : 'text-secondary'}`}
@@ -208,7 +207,7 @@ const StaffManagement = () => {
                                     Unemployed Staff <span
                                     className="badge bg-secondary ms-1">{inactiveStaffCount}</span>
                                 </Button>
-                            </div>
+                            </div> */}
                         </div>
                         <SearchBar
                             onSearch={handleSearch}
