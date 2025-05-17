@@ -55,3 +55,21 @@ export const convertToCamelCase = (data) => {
     
     return result;
 };
+
+export const formatTime = (timestamp) => {
+    if (!timestamp) return 'N/A';
+
+    // Handle timestamp as milliseconds since midnight
+    const hours = Math.floor(timestamp / (1000 * 60 * 60));
+    const minutes = Math.floor((timestamp % (1000 * 60 * 60)) / (1000 * 60));
+
+    // Format as HH:MM AM/PM
+    return new Date(0, 0, 0, hours, minutes).toLocaleTimeString([],
+        { hour: '2-digit', minute: '2-digit' });
+};
+
+export const formatTimeForDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
