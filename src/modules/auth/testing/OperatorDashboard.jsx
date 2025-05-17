@@ -56,28 +56,6 @@ const OperatorDashboard = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-
-                <Col md={6} lg={3} className="mb-4">
-                    <Card className="h-100 shadow-sm">
-                        <Card.Body className="d-flex flex-column">
-                            <div className="text-center mb-3">
-                                <FaChartBar size={48} className="text-info" />
-                            </div>
-                            <Card.Title className="text-center">Statistics</Card.Title>
-                            <Card.Text className="text-muted">
-                                View passenger statistics and analytics.
-                            </Card.Text>
-                            <Button
-                                variant="info"
-                                className="mt-auto"
-                                onClick={() => handleNavigate('/operator/statistics')}
-                            >
-                                View Stats
-                            </Button>
-                        </Card.Body>
-                    </Card>
-                </Col>
-
             </Row>
         </div>
     );

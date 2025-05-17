@@ -56,7 +56,15 @@ export const validateUsername = (username) => {
     if (!username) {
         return false;
     }
-    // Allow spaces between characters; total length max 20
+    
+    // First check if it's an email address (for OAuth2 logins)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (emailRegex.test(username)) {
+        return true;
+    }
+    
+    // Otherwise check if it's a valid username format
+    // Allow letters, numbers and spaces; total length max 20
     const usernameRegex = /^[\p{L}\p{N} ]{1,20}$/u;
     return usernameRegex.test(username);
 };

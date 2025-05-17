@@ -130,7 +130,7 @@ const AdminDashboard = () => {
                             </div>
                             <Card.Title className="text-center">Statistics & Reports</Card.Title>
                             <Card.Text className="text-muted">
-                                View system statistics, revenue reports, and passenger data.
+                                View tickets & users analytics data.
                             </Card.Text>
                             <Button
                                 variant="info"
@@ -142,7 +142,7 @@ const AdminDashboard = () => {
                         </Card.Body>
                     </Card>
                 </Col>
-
+{/* 
                 <Col md={6} lg={4} className="mb-4">
                     <Card className="h-100 shadow-sm">
                         <Card.Body className="d-flex flex-column">
@@ -162,7 +162,7 @@ const AdminDashboard = () => {
                             </Button>
                         </Card.Body>
                     </Card>
-                </Col>
+                </Col> */}
             </Row>
         </div>
     );

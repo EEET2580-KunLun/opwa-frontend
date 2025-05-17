@@ -420,8 +420,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
 
         // Append fields with correct names for the backend
         staffFormData.append('email', formData.email);
-        staffFormData.append('username', formData.username);
-
+    
         // Only include password if provided (always for new users, optional for edits)
         if (formData.password) {
             staffFormData.append('password', formData.password);
@@ -444,9 +443,13 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
         staffFormData.append("address.district", formData.addressDistrict);
         staffFormData.append("address.city", formData.addressCity);
 
-        // Add staff ID if in edit mode
+        // Handle staff ID and username fields based on mode
         if (isEditMode && initialData?.id) {
+            // For edit mode, include ID but NOT username
             staffFormData.append('id', initialData.id);
+        } else {
+            // For create mode, include username
+            staffFormData.append('username', formData.username);
         }
 
         // Append files only if they've been changed
