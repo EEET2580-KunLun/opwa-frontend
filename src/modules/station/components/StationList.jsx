@@ -254,8 +254,6 @@ const StationList = () => {
                                             }}
                                             onSort={handleSort} 
                                         />
-                                        <th>Location [Long, Lat]</th>
-                                        <th className="text-end">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -268,9 +266,6 @@ const StationList = () => {
                                                     <Badge bg={station.active ? "success" : "secondary"}>
                                                         {station.active ? "Active" : "Inactive"}
                                                     </Badge>
-                                                </td>
-                                                <td>
-                                                    {station.location ? `[${station.location[0]}, ${station.location[1]}]` : 'N/A'}
                                                 </td>
                                                 <td className="text-end">
                                                     <Button
