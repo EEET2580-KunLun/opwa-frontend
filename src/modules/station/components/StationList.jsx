@@ -1,86 +1,119 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
     Container, 
-    Typography, 
-    Box, 
-    Paper, 
+    Row, 
+    Col,
+    Card,
+    Table,
     Button, 
-    TextField,
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableContainer, 
-    TableHead, 
-    TableRow,
-    TablePagination,
-    Chip,
-    IconButton,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    CircularProgress,
-    FormControlLabel,
-    Switch
-} from '@mui/material';
+    Spinner,
+    Badge,
+    Pagination,
+    Alert,
+    Modal
+} from 'react-bootstrap';
 import { 
-    Add as AddIcon,
-    Edit as EditIcon,
-    Delete as DeleteIcon,
-    Search as SearchIcon,
-    LocationOn as LocationOnIcon
-} from '@mui/icons-material';
+    FaPlus,
+    FaEdit,
+    FaTrash,
+    FaMapMarkerAlt,
+    FaExclamationTriangle,
+    FaSyncAlt,
+    FaSearch
+} from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useFetchAllStationsQuery, useDeleteStationMutation } from '../store/stationApiSlice';
 import { useDispatch } from 'react-redux';
 import { setStations, removeStation } from '../store/stationSlice';
 import MapComponent from "../../map/MapComponent.jsx";
+import SearchBar from '../../../shared/components/SearchBar.jsx';
+import SortableHeader from '../../../shared/components/SortableHeader.jsx';
 
 const StationList = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     
-    // State for filtering and pagination
-    const [searchQuery, setSearchQuery] = useState('');
-    const [showActive, setShowActive] = useState(true);
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    // Server-side pagination and sorting state
+    const [queryParams, setQueryParams] = useState({
+        page: 0,
+        size: 10,
+        sortBy: 'name',
+        direction: 'ASC'
+    });
     
-    // State for delete confirmation dialog
+    // Client-side filtering state (search only now)
+    const [clientSearchTerm, setClientSearchTerm] = useState('');
+    
+    // UI state
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [stationToDelete, setStationToDelete] = useState(null);
-
     const [selectedStationLoc, setSelectedStationLoc] = useState(null);
 
-    // Fetch stations
-    const { data: stationsData, isLoading, isError, refetch } = useFetchAllStationsQuery();
+    // Fetch stations with pagination parameters
+    const { 
+        data: stationsResponse, 
+        isLoading, 
+        isError, 
+        error, 
+        refetch 
+    } = useFetchAllStationsQuery(queryParams);
+    
     const [deleteStation, { isLoading: isDeleting }] = useDeleteStationMutation();
+
+    // Extract data from paginated response
+    const stations = stationsResponse?.content || [];
+    const totalElements = stationsResponse?.total_elements || 0;
+    const totalPages = stationsResponse?.total_pages || 0;
+    const currentPage = stationsResponse?.page || 0;
+    const isLastPage = stationsResponse?.last || false;
 
     // Store stations in Redux when data is fetched
     useEffect(() => {
-        if (stationsData?.data) {
-            dispatch(setStations(stationsData.data));
+        if (stations.length > 0) {
+            dispatch(setStations(stations));
         }
-    }, [stationsData, dispatch]);
+    }, [stations, dispatch]);
 
-    // Filter stations based on search query and active status
-    const filteredStations = stationsData?.data?.filter(station => {
-        const matchesSearch = station.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            station.address.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = showActive ? station.active : true;
-        return matchesSearch && matchesStatus;
-    }) || [];
+    // Check if search filtering is active
+    const isSearchActive = clientSearchTerm.trim() !== '';
+    const isClientFilteringActive = isSearchActive; // Only search filtering now
 
+    // Apply client-side filtering (search only)
+    const filteredStations = useMemo(() => {
+        if (!isSearchActive) return stations;
+        
+        return stations.filter(station => 
+            station.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) || 
+            (station.address && station.address.toLowerCase().includes(clientSearchTerm.toLowerCase()))
+        );
+    }, [stations, clientSearchTerm, isSearchActive]);
 
-    // Pagination handlers
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+    // Handle search
+    const handleSearch = (term) => {
+        setClientSearchTerm(term);
+    };
+    
+    // Handle sorting
+    const handleSort = (field, direction) => {
+        setQueryParams(prev => ({
+            ...prev,
+            sortBy: field,
+            direction: direction,
+            page: 0 // Reset to first page when sorting changes
+        }));
+    };
+    
+    // Handle page change
+    const handlePageChange = (pageNumber) => {
+        setQueryParams(prev => ({
+            ...prev,
+            page: pageNumber - 1 // Convert from 1-based (UI) to 0-based (API)
+        }));
     };
 
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
+    // Clear search
+    const clearFilters = () => {
+        setClientSearchTerm('');
     };
 
     // Delete handlers
@@ -100,11 +133,6 @@ const StationList = () => {
         }
     };
 
-    const handleCancelDelete = () => {
-        setDeleteDialogOpen(false);
-        setStationToDelete(null);
-    };
-
     // Navigation handlers
     const handleCreateStation = () => {
         navigate('/admin/stations/create');
@@ -118,178 +146,256 @@ const StationList = () => {
         setSelectedStationLoc(station.location);
     };
 
-
-    if (isLoading) {
+    // Loading state
+    if (isLoading && !stations.length) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    if (isError) {
-        return (
-            <Container>
-                <Typography variant="h6" color="error" sx={{ p: 2 }}>
-                    Error loading stations. Please try again later.
-                </Typography>
-                <Button variant="contained" onClick={refetch}>
-                    Retry
-                </Button>
-            </Container>
+            <div className="d-flex justify-content-center mt-5">
+                <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </Spinner>
+            </div>
         );
     }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5" component="h2">
-                        Stations
-                    </Typography>
-                    <Button 
-                        variant="contained" 
-                        color="primary" 
-                        startIcon={<AddIcon />}
-                        onClick={handleCreateStation}
-                    >
-                        Add Station
-                    </Button>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <TextField
-                            label="Search Stations"
-                            variant="outlined"
-                            size="small"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            InputProps={{
-                                startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
-                            }}
-                            sx={{ mr: 2 }}
+        <Container fluid className="py-4">
+            <Card>
+                <Card.Header className="d-flex justify-content-between align-items-center">
+                    <h4 className="mb-0">Stations</h4>
+                    <div className="d-flex gap-2">
+                        <Button
+                            variant="outline-secondary"
+                            className="d-flex align-items-center"
+                            onClick={refetch}
+                            disabled={isLoading}
+                        >
+                            <FaSyncAlt className={isLoading ? "spin" : ""} />
+                        </Button>
+                        <Button
+                            variant="primary"
+                            className="d-flex align-items-center"
+                            onClick={handleCreateStation}
+                        >
+                            <FaPlus className="me-2" />
+                            Add New Station
+                        </Button>
+                    </div>
+                </Card.Header>
+                <Card.Body>
+                    {/* Full-width search bar */}
+                    <div className="mb-3">
+                        <SearchBar
+                            onSearch={handleSearch}
+                            placeholder="Search stations by name or address..."
                         />
-                        <FormControlLabel
-                            control={
-                                <Switch 
-                                    checked={showActive} 
-                                    onChange={(e) => setShowActive(e.target.checked)} 
-                                />
-                            }
-                            label="Show Active Only"
-                        />
-                    </Box>
-                </Box>
+                    </div>
 
-                <TableContainer>
-                    <Table size="medium">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell><strong>Name</strong></TableCell>
-                                <TableCell><strong>Address</strong></TableCell>
-                                <TableCell><strong>Status</strong></TableCell>
-                                <TableCell><strong>Location [Long, Lat]</strong></TableCell>
-                                <TableCell align="right"><strong>Actions</strong></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {filteredStations
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((station) => (
-                                    <TableRow key={station.id}>
-                                        <TableCell>{station.name}</TableCell>
-                                        <TableCell>{station.address}</TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={station.active ? "Active" : "Inactive"}
-                                                color={station.active ? "success" : "default"}
-                                                size="small"
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            {station.location ? `[${station.location[0]}, ${station.location[1]}]` : 'N/A'}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <IconButton
-                                                aria-label="view on map"
-                                                color="info"
-                                                onClick={() => handleViewOnMap(station)}
-                                                disabled={!station.location}
+                    {/* Show filter status when search is active */}
+                    {isSearchActive && (
+                        <Alert variant="info" className="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <FaSearch className="me-2" />
+                                <span>
+                                    Searching for "{clientSearchTerm}" - 
+                                    Found {filteredStations.length} of {stations.length} stations
+                                </span>
+                            </div>
+                            <Button 
+                                variant="outline-secondary" 
+                                size="sm" 
+                                onClick={clearFilters}
+                            >
+                                Clear Search
+                            </Button>
+                        </Alert>
+                    )}
+
+                    {isError ? (
+                        <Alert variant="danger">
+                            Error loading stations: {error?.data?.message || 'Unknown error'}
+                            <Button 
+                                variant="outline-primary" 
+                                size="sm" 
+                                className="ms-3" 
+                                onClick={() => refetch()}
+                            >
+                                Retry
+                            </Button>
+                        </Alert>
+                    ) : (
+                        <>
+                            <Table responsive hover className="align-middle">
+                                <thead className="bg-light">
+                                    <tr>
+                                        <SortableHeader 
+                                            label="Name" 
+                                            field="name" 
+                                            currentSort={{
+                                                field: queryParams.sortBy,
+                                                direction: queryParams.direction
+                                            }}
+                                            onSort={handleSort} 
+                                        />
+                                        <SortableHeader 
+                                            label="Address" 
+                                            field="address" 
+                                            currentSort={{
+                                                field: queryParams.sortBy,
+                                                direction: queryParams.direction
+                                            }}
+                                            onSort={handleSort} 
+                                        />
+                                        <SortableHeader 
+                                            label="Status" 
+                                            field="active" 
+                                            currentSort={{
+                                                field: queryParams.sortBy,
+                                                direction: queryParams.direction
+                                            }}
+                                            onSort={handleSort} 
+                                        />
+                                        <th>Location [Long, Lat]</th>
+                                        <th className="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredStations.length > 0 ? (
+                                        filteredStations.map((station) => (
+                                            <tr key={station.id}>
+                                                <td>{station.name}</td>
+                                                <td>{station.address}</td>
+                                                <td>
+                                                    <Badge bg={station.active ? "success" : "secondary"}>
+                                                        {station.active ? "Active" : "Inactive"}
+                                                    </Badge>
+                                                </td>
+                                                <td>
+                                                    {station.location ? `[${station.location[0]}, ${station.location[1]}]` : 'N/A'}
+                                                </td>
+                                                <td className="text-end">
+                                                    <Button
+                                                        variant="outline-info"
+                                                        size="sm"
+                                                        className="me-2"
+                                                        onClick={() => handleViewOnMap(station)}
+                                                        disabled={!station.location}
+                                                    >
+                                                        <FaMapMarkerAlt />
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline-primary"
+                                                        size="sm"
+                                                        className="me-2"
+                                                        onClick={() => handleEditStation(station.id)}
+                                                    >
+                                                        <FaEdit />
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline-danger"
+                                                        size="sm"
+                                                        onClick={() => handleDeleteClick(station)}
+                                                    >
+                                                        <FaTrash />
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={5} className="text-center py-4">
+                                                <FaExclamationTriangle className="me-2 text-warning" />
+                                                {isClientFilteringActive 
+                                                    ? "No stations match your search criteria" 
+                                                    : "No stations found"}
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </Table>
+
+                            {/* Only show pagination when not filtering and we have pages */}
+                            {!isClientFilteringActive && totalPages > 0 && (
+                                <div className="pagination-controls d-flex justify-content-between align-items-center mt-4">
+                                    <div>
+                                        Showing {stations.length} of {totalElements} stations
+                                    </div>
+                                    <Pagination>
+                                        <Pagination.Prev
+                                            onClick={() => handlePageChange(currentPage)}
+                                            disabled={currentPage === 0}
+                                        />
+
+                                        {Array.from({ length: totalPages }, (_, index) => (
+                                            <Pagination.Item
+                                                key={index + 1}
+                                                active={index === currentPage}
+                                                onClick={() => handlePageChange(index + 1)}
                                             >
-                                                <LocationOnIcon />
-                                            </IconButton>
-                                            <IconButton
-                                                aria-label="edit"
-                                                color="primary"
-                                                onClick={() => handleEditStation(station.id)}
-                                            >
-                                                <EditIcon />
-                                            </IconButton>
-                                            <IconButton
-                                                aria-label="delete"
-                                                color="error"
-                                                onClick={() => handleDeleteClick(station)}
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            {filteredStations.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={5} align="center">
-                                        No stations found
-                                    </TableCell>
-                                </TableRow>
+                                                {index + 1}
+                                            </Pagination.Item>
+                                        ))}
+
+                                        <Pagination.Next
+                                            onClick={() => handlePageChange(currentPage + 2)}
+                                            disabled={isLastPage}
+                                        />
+                                    </Pagination>
+                                </div>
                             )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    component="div"
-                    count={filteredStations.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-            </Paper>
+                        </>
+                    )}
+                </Card.Body>
+            </Card>
 
-            {/* Delete Confirmation Dialog */}
-            <Dialog
-                open={deleteDialogOpen}
-                onClose={handleCancelDelete}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">
-                    {"Confirm Station Deletion"}
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Are you sure you want to delete station "{stationToDelete?.name}"? 
-                        This action cannot be undone.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCancelDelete}>Cancel</Button>
+            {/* Map Component */}
+            {selectedStationLoc && (
+                <Card className="mt-4">
+                    <Card.Header className="d-flex justify-content-between align-items-center">
+                        <h5 className="mb-0">Station Map</h5>
+                        <Button 
+                            variant="outline-secondary" 
+                            size="sm"
+                            onClick={() => setSelectedStationLoc(null)}
+                        >
+                            Hide Map
+                        </Button>
+                    </Card.Header>
+                    <Card.Body style={{ height: '600px' }}>
+                        <MapComponent 
+                            isStationMode={true} 
+                            selectedStationLoc={selectedStationLoc} 
+                        />
+                    </Card.Body>
+                </Card>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            <Modal show={deleteDialogOpen} onHide={() => setDeleteDialogOpen(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Deletion</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Are you sure you want to delete station 
+                    <strong> {stationToDelete?.name}</strong>?
+                    <br/>
+                    This action cannot be undone.
+                </Modal.Body>
+                <Modal.Footer>
                     <Button 
-                        onClick={handleConfirmDelete} 
-                        color="error" 
-                        autoFocus
+                        variant="secondary" 
+                        onClick={() => setDeleteDialogOpen(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="danger"
+                        onClick={handleConfirmDelete}
                         disabled={isDeleting}
                     >
                         {isDeleting ? 'Deleting...' : 'Delete'}
                     </Button>
-                </DialogActions>
-            </Dialog>
-
-            <Box sx={{ mt: 4 }}>
-                <MapComponent isStationMode={true} selectedStationLoc={selectedStationLoc} />
-            </Box>
+                </Modal.Footer>
+            </Modal>
         </Container>
     );
 };
