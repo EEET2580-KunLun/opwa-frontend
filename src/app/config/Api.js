@@ -1,8 +1,10 @@
 // Global URL configuration for API endpoints
 
 export const API_URL = "http://localhost:8080";
+export const PAWA_API_URL = "https://localhost:8443";
 const API_VERSION = "/v1";
 const BASE_URL = `${API_URL}${API_VERSION}`;
+const PAWA_BASE_URL = `${PAWA_API_URL}/api`;
 
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
@@ -63,7 +65,8 @@ export const TICKET_ENDPOINTS = {
     TYPES: '/tickets/types',
     PURCHASE: '/tickets/purchase',
     HISTORY: '/tickets/history',
-    ALL: '/tickets/all'
+    ALL: '/tickets/all',
+    ANALYTICS: '/statistics/tickets',
 };
 
 export const CSRF_ENDPOINTS = {
@@ -74,5 +77,7 @@ export const CSRF_ENDPOINTS = {
 export const API_CONFIG = {
     BASE_URL,
     API_URL,
-    API_VERSION
+    API_VERSION,
+    PAWA_API_URL,
+    PAWA_BASE_URL,
 };

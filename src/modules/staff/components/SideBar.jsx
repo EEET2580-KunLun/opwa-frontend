@@ -35,13 +35,6 @@ const SideBar = ({user}) => {
                     >
                         Staff Management
                     </Nav.Link>
-                    <Nav.Link
-                        as={Link}
-                        to="/admin/staff/create"
-                        className={`sidebar-link ${activeLink === '/admin/staff/create' ? 'fw-bold' : ''}`}
-                    >
-                        Create Staff
-                    </Nav.Link>
                      <Nav.Link
                         as={Link}
                         to="/admin/lines"
@@ -55,6 +48,13 @@ const SideBar = ({user}) => {
                         className={`sidebar-link ${activeLink.startsWith('/admin/stations') ? 'fw-bold' : ''}`}
                     >
                         Station Management
+                    </Nav.Link>
+                      <Nav.Link
+                        as={Link}
+                        to="/admin/tickets/analytics"
+                        className={`sidebar-link ${activeLink.startsWith('/admin/tickets/analytics') ? 'fw-bold' : ''}`}
+                    >
+                        Statistics & Analytics
                     </Nav.Link>
                 </Nav>
             </div>

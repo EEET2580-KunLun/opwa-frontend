@@ -1,5 +1,4 @@
 import {Navigate, Route, Routes} from 'react-router-dom';
-import React from 'react';
 import { Suspense, lazy } from 'react';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import StaffManagement from "../../modules/staff/components/StaffManagement.jsx";
@@ -7,6 +6,7 @@ import Page404 from "../../shared/errorPage/404.jsx";
 import Page500 from "../../shared/errorPage/500.jsx";
 import Page403 from "../../shared/errorPage/403.jsx";
 import Page401 from "../../shared/errorPage/401.jsx";
+import TicketAnalytics from '../../modules/statistics/components/TicketAnalytics.jsx';
 
 const WelcomeUI = lazy(() => import('../../modules/auth/component/welcoming/WelcomeUI.jsx'));
 const About = lazy(() => import('../../modules/auth/component/welcoming/About.jsx'));
@@ -67,6 +67,8 @@ const RouteConfig = () => {
 
                     <Route path="/admin/tickets" element={<TicketList />} />
                     <Route path="/admin/tickets/history" element={<TicketHistory />} />
+                    
+                    <Route path="/admin/statistics/tickets" element={<TicketAnalytics />} />
                 </Route>
 
                 {/* Operator Routes */}
@@ -88,6 +90,7 @@ const RouteConfig = () => {
                     <Route path="/ticket-agent/tickets" element={<TicketList />} />
                     <Route path="/ticket-agent/tickets/history" element={<TicketHistory />} />
                     <Route path="/ticket-agent/profile" element={<StaffProfile />} />
+                    <Route path="/ticket-agent/tickets/analytics" element={<TicketAnalytics />} />
                 </Route>
             </Routes>
         </Suspense>
