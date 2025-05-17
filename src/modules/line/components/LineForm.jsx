@@ -147,7 +147,10 @@ const LineForm = () => {
                         station_id: station.station_id,
                         station_name: station.station_name,
                         sequence: station.sequence,
-                        time_from_previous_station: station.sequence === 0 ? 0 : station.time_from_previous_station
+                        time_from_previous_station: station.sequence === 0 ? 0 :
+                            typeof station.time_from_previous_station === 'string' && station.time_from_previous_station.startsWith('PT') ?
+                                parseInt(station.time_from_previous_station.replace(/[^0-9]/g, '')) :
+                                parseInt(station.time_from_previous_station) || 5
                     }))
                 );
             }

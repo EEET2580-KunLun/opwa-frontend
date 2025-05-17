@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {useDispatch} from 'react-redux';
 import {setLines} from "../store/lineSlice.js";
-
+import {formatTime} from "../../../shared/utils.js";
 import {
     Table,
     Button,
@@ -131,18 +131,6 @@ const LineList = () => {
 
     const toggleLineExpand = (lineId) => {
         setExpandedLine(expandedLine === lineId ? null : lineId);
-    };
-
-    const formatTime = (timestamp) => {
-        if (!timestamp) return 'N/A';
-
-        // Handle timestamp as milliseconds since midnight
-        const hours = Math.floor(timestamp / (1000 * 60 * 60));
-        const minutes = Math.floor((timestamp % (1000 * 60 * 60)) / (1000 * 60));
-
-        // Format as HH:MM AM/PM
-        return new Date(0, 0, 0, hours, minutes).toLocaleTimeString([],
-            { hour: '2-digit', minute: '2-digit' });
     };
 
     const getStatusBadge = (status) => {

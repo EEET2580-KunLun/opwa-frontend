@@ -1,7 +1,8 @@
 // src/modules/line/components/LineSchedule.jsx (continued)
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { formatTime, formatTimeForDate } from "../../../shared/utils.js";
 import {
     Card,
     Button,
@@ -54,16 +55,15 @@ const LineSchedule = () => {
         isLoading: tripsLoading,
         error: tripsError,
         refetch: refetchTrips
-    } = useGetLineTripsQuery({ id, page, size: pageSize });
+    } = useGetLineTripsQuery(
+        { id, page, size: pageSize },
+    );
 
     // Generate schedule mutation
     const [
         generateSchedule,
         { isLoading: isGenerating }
     ] = useGenerateLineScheduleMutation();
-
-    const isLoading = lineLoading || overviewLoading || tripsLoading || isGenerating;
-    const hasError = lineError || overviewError || tripsError;
 
     const handleGoBack = () => {
         navigate('/operator/lines');
@@ -86,18 +86,18 @@ const LineSchedule = () => {
     };
 
     const handlePageChange = (newPage) => {
+        // Log for debugging
+        console.log(`Changing page from ${page} to ${newPage}`);
         setPage(newPage);
     };
 
-    const formatTime = (timestamp) => {
-        if (!timestamp) return 'N/A';
-        const date = new Date(timestamp);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
+    useEffect(() => {
+        console.log(`Page: ${page}, Trips data:`, trips);
+    }, [page, trips]);
 
     const calculateTotalPages = () => {
-        if (!scheduleOverview?.totalTripCount) return 1;
-        return Math.ceil(scheduleOverview.totalTripCount / pageSize);
+        if (!scheduleOverview?.total_trip_count) return 1;
+        return Math.ceil(scheduleOverview.total_trip_count / pageSize);
     };
 
     const renderPagination = () => {
@@ -203,6 +203,26 @@ const LineSchedule = () => {
         );
     }
 
+    // Show error state if there's any error after loading
+    if (overviewError || tripsError) {
+        return (
+            <Card className="border-danger">
+                <Card.Body className="text-center">
+                    <Card.Title className="text-danger">
+                        <FaExclamationTriangle className="me-2" />
+                        Error Loading Schedule
+                    </Card.Title>
+                    <Card.Text>
+                        {(overviewError || tripsError)?.data?.message || 'Could not load the schedule. Please try again.'}
+                    </Card.Text>
+                    <Button variant="primary" onClick={handleGoBack}>
+                        <FaArrowLeft className="me-2" /> Back to Line List
+                    </Button>
+                </Card.Body>
+            </Card>
+        );
+    }
+
     return (
         <>
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -256,7 +276,7 @@ const LineSchedule = () => {
                         <Col md={3}>
                             <div className="mb-3">
                                 <strong>Start Station:</strong><br />
-                                {line?.stations?.find(s => s.sequence === 0)?.stationName || 'N/A'}
+                                {line?.stations?.find(s => s.sequence === 0)?.station_name || 'N/A'}
                             </div>
                         </Col>
                         <Col md={3}>
@@ -276,7 +296,7 @@ const LineSchedule = () => {
                                 {overviewLoading ? (
                                     <Spinner animation="border" size="sm" />
                                 ) : (
-                                    scheduleOverview?.totalTripCount || '0'
+                                    scheduleOverview?.total_trip_count || '0'
                                 )}
                             </div>
                         </Col>
@@ -296,7 +316,7 @@ const LineSchedule = () => {
                                     <Spinner animation="border" size="sm" />
                                     <span className="ms-2">Loading...</span>
                                 </div>
-                            ) : scheduleOverview?.firstTwoTrips?.length > 0 ? (
+                            ) : scheduleOverview?.first_two_trips?.length > 0 ? (
                                 <Table responsive>
                                     <thead>
                                     <tr>
@@ -307,14 +327,14 @@ const LineSchedule = () => {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {scheduleOverview.firstTwoTrips.map((trip) => (
+                                    {scheduleOverview.first_two_trips.map((trip) => (
                                         <tr key={trip.id}>
-                                            <td>{trip.tripCode}</td>
-                                            <td>{formatTime(trip.departureTime)}</td>
-                                            <td>{formatTime(trip.arrivalTime)}</td>
+                                            <td>{trip.trip_code}</td>
+                                            <td>{formatTimeForDate(trip.departure_time)}</td>
+                                            <td>{formatTimeForDate(trip.arrival_time)}</td>
                                             <td>
-                                                {trip.departureTime && trip.arrivalTime
-                                                    ? `${Math.round((new Date(trip.arrivalTime) - new Date(trip.departureTime)) / 60000)} min`
+                                                {trip.departure_time && trip.arrival_time
+                                                    ? `${Math.floor((new Date(trip.arrival_time) - new Date(trip.departure_time)) / 60000)} min`
                                                     : 'N/A'}
                                             </td>
                                         </tr>
@@ -343,7 +363,7 @@ const LineSchedule = () => {
                                     <Spinner animation="border" size="sm" />
                                     <span className="ms-2">Loading...</span>
                                 </div>
-                            ) : scheduleOverview?.lastTwoTrips?.length > 0 ? (
+                            ) : scheduleOverview?.last_two_trips?.length > 0 ? (
                                 <Table responsive>
                                     <thead>
                                     <tr>
@@ -354,14 +374,14 @@ const LineSchedule = () => {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {scheduleOverview.lastTwoTrips.map((trip) => (
+                                    {scheduleOverview.last_two_trips.map((trip) => (
                                         <tr key={trip.id}>
-                                            <td>{trip.tripCode}</td>
-                                            <td>{formatTime(trip.departureTime)}</td>
-                                            <td>{formatTime(trip.arrivalTime)}</td>
+                                            <td>{trip.trip_code}</td>
+                                            <td>{formatTimeForDate(trip.departure_time)}</td>
+                                            <td>{formatTimeForDate(trip.arrival_time)}</td>
                                             <td>
-                                                {trip.departureTime && trip.arrivalTime
-                                                    ? `${Math.round((new Date(trip.arrivalTime) - new Date(trip.departureTime)) / 60000)} min`
+                                                {trip.departure_time && trip.arrival_time
+                                                    ? `${Math.floor((new Date(trip.arrival_time) - new Date(trip.departure_time)) / 60000)} min`
                                                     : 'N/A'}
                                             </td>
                                         </tr>
@@ -417,12 +437,12 @@ const LineSchedule = () => {
                                         key={trip.id}
                                         className={trip.suspended ? 'text-danger' : ''}
                                     >
-                                        <td>{trip.tripCode}</td>
-                                        <td>{formatTime(trip.departureTime)}</td>
-                                        <td>{formatTime(trip.arrivalTime)}</td>
+                                        <td>{trip.trip_code}</td>
+                                        <td>{formatTimeForDate(trip.departure_time)}</td>
+                                        <td>{formatTimeForDate(trip.arrival_time)}</td>
                                         <td>
-                                            {trip.departureTime && trip.arrivalTime
-                                                ? `${Math.round((new Date(trip.arrivalTime) - new Date(trip.departureTime)) / 60000)} min`
+                                            {trip.departure_time && trip.arrival_time
+                                                ? `${Math.floor((new Date(trip.arrival_time) - new Date(trip.departure_time)) / 60000)} min`
                                                 : 'N/A'}
                                         </td>
                                         <td>
