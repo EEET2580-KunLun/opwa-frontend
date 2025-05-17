@@ -170,7 +170,7 @@ const SideBar = ({user}) => {
                     </div>
                     <div>
                         <div className="fw-bold">
-                            <div>{user?.username}</div>
+                            <div className="text-truncate" style={{maxWidth: '120px'}}>{user?.username}</div>
                             <div>({user?.role})</div>
                         </div>
                     </div>

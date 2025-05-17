@@ -2,6 +2,14 @@ import {apiSlice} from "../../../app/config/api/apiSlice.js";
 import {AUTH_ENDPOINTS} from "../../../app/config/Api.js";
 export const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        validateToken: builder.mutation(
+            {
+                query: () => ({
+                    url: AUTH_ENDPOINTS.VALIDATE,
+                    method: 'GET'
+                }),
+            }
+        ),
         login: builder.mutation({
             query: ({email, password}) => ({
                 url: AUTH_ENDPOINTS.LOGIN,
@@ -29,4 +37,5 @@ export const {
     useLoginMutation,
     useLogoutMutation,
     useRegisterMutation,
+    useValidateTokenMutation
 } = authApiSlice;

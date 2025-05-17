@@ -47,8 +47,6 @@ export const useLogin = () => {
 
         try {
             const response = await login({email, password});
-            console.log("Login response:", response);
-
             // Check if the response has error
             if(response.error){
                 setError(response.error?.data?.meta?.message || "Authentication failed");
@@ -94,7 +92,6 @@ export const useLogin = () => {
             console.error('Google login error:', err);
         }
     };
-
     return {
         email,
         password,

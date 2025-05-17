@@ -3,13 +3,17 @@ import {createSlice} from '@reduxjs/toolkit';
 const authSlice = createSlice({
     name: 'auth',
     initialState: {
-        XSRF_TOKEN: "none",
+        XSRF_TOKEN: null,
         isAuthenticated: false,
         user: null,
         errorCode: null,
     },
     reducers: {
         login(state, action) {
+            state.user = action.payload.data?.data.staff;
+            state.isAuthenticated = true;
+        },
+        googleLogin(state, action) {
             state.user = action.payload.data?.data.staff;
             state.isAuthenticated = true;
         },
@@ -26,7 +30,7 @@ const authSlice = createSlice({
     }
 })
 
-export const {login, logout, setXSRFToken, setErrorCode} = authSlice.actions;
+export const {googleLogin,login, logout, setXSRFToken, setErrorCode} = authSlice.actions;
 export default authSlice.reducer;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;

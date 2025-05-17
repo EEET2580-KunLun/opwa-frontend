@@ -6,6 +6,7 @@ const BASE_URL = `${API_URL}${API_VERSION}`;
 
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
+    VALIDATE: '/auth/validate',
     LOGIN: `/auth/login`,
     LOGOUT: `/auth/logout`,
     REGISTER: `/auth/register`,
