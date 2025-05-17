@@ -45,12 +45,26 @@ export const lineApiSlice = apiSlice.injectEndpoints({
             providesTags: (result, error, id) => [{ type: 'Line', id }]
         }),
 
-        getStations: builder.query({
+       getStations: builder.query({
             query: () => ({
                 url: STATION_ENDPOINTS.FETCH_ALL,
                 method: 'GET',
+                // Request all stations for dropdown by setting large size
+                params: {
+                    page: 0,
+                    size: 1000, // Large enough to get all stations
+                    active: true // Only get active stations
+                }
             }),
-            transformResponse: (response) => response.data || [],
+            // Update the transform response to extract stations from paginated structure
+            transformResponse: (response) => {
+                // Check if response has the new paginated structure
+                if (response?.data?.content && Array.isArray(response.data.content)) {
+                    return response.data.content;
+                }
+                // Fallback to handle old response format
+                return response?.data || [];
+            },
             providesTags: ['Station']
         }),
 
