@@ -48,7 +48,7 @@ const StaffManagement = () => {
     const isSearchActive = clientSearchTerm.trim() !== '';
     const isFilterActive = Object.keys(clientFilters).length > 0;
     const isClientFilteringActive = isSearchActive || isFilterActive;
-    
+
     // Client-side filtered staff data
     const filteredStaffs = useMemo(() => {
         if (!isClientFilteringActive) return staffs;
@@ -57,54 +57,60 @@ const StaffManagement = () => {
             // Filter by search term (name, email, username)
             if (isSearchActive) {
                 const searchTerm = clientSearchTerm.toLowerCase();
-                const fullName = `${staff.first_name || ''} ${staff.middle_name || ''} ${staff.last_name || ''}`.toLowerCase();
+                
+                // Fast bailout if common fields match
                 const email = (staff.email || '').toLowerCase();
                 const username = (staff.username || '').toLowerCase();
                 
-                const matchesSearch = 
-                    fullName.includes(searchTerm) || 
-                    email.includes(searchTerm) || 
-                    username.includes(searchTerm);
-                    
-                if (!matchesSearch) return false;
-            }
-            
-            // Filter by advanced filters
-            if (isFilterActive) {
-                for (const [key, value] of Object.entries(clientFilters)) {
-                    if (!value && value !== false) continue; // Skip empty filters
-                    
-                    switch (key) {
-                        case 'role':
-                            if (staff.role !== value) return false;
-                            break;
-                        case 'shift':
-                            if (staff.shift !== value) return false;
-                            break;
-                        case 'city':
-                            if (!staff.residence_address_entity?.city?.toLowerCase().includes(value.toLowerCase()))
-                                return false;
-                            break;
-                        case 'district':
-                            if (!staff.residence_address_entity?.district?.toLowerCase().includes(value.toLowerCase()))
-                                return false;
-                            break;
-                        case 'birthYearBefore':
-                            {
-                                const birthYear = new Date(staff.date_of_birth).getFullYear();
-                                if (birthYear > parseInt(value)) return false;
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+                if (email.includes(searchTerm) || username.includes(searchTerm)) {
+                    return isFilterActive ? checkAdvancedFilters(staff) : true;
+                }
+                
+                // More expensive name concatenation and check
+                const fullName = `${staff.first_name || ''} ${staff.middle_name || ''} ${staff.last_name || ''}`.toLowerCase();
+                if (!fullName.includes(searchTerm)) {
+                    return false;
                 }
             }
             
-            return true;
+            // If we're here and there are active filters, check them
+            return isFilterActive ? checkAdvancedFilters(staff) : true;
         });
+        
+        // Helper function to check advanced filters
+        function checkAdvancedFilters(staff) {
+            for (const [key, value] of Object.entries(clientFilters)) {
+                if (!value && value !== false) continue; // Skip empty filters
+                
+                switch (key) {
+                    case 'role':
+                        if (staff.role !== value) return false;
+                        break;
+                    case 'shift':
+                        if (staff.shift !== value) return false;
+                        break;
+                    case 'city':
+                        if (!staff.residence_address_entity?.city?.toLowerCase().includes(value.toLowerCase()))
+                            return false;
+                        break;
+                    case 'district':
+                        if (!staff.residence_address_entity?.district?.toLowerCase().includes(value.toLowerCase()))
+                            return false;
+                        break;
+                    case 'birthYearBefore':
+                        {
+                            const birthYear = new Date(staff.date_of_birth).getFullYear();
+                            if (birthYear > parseInt(value)) return false;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return true;
+        }
     }, [staffs, clientSearchTerm, clientFilters, isClientFilteringActive, isSearchActive, isFilterActive]);
-    
+        
     // Active and inactive counts - we should get this from a separate API call ideally
     // For now, we'll just use the total_elements when the employed filter is applied
     const activeStaffCount = queryParams.employed === true ? totalElements : 0;

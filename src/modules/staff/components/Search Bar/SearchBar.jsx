@@ -10,16 +10,11 @@ const SearchBar = ({ onSearch, onFilter }) => {
     const [hasActiveFilters, setHasActiveFilters] = useState(false);
     const filterBtnRef = useRef(null);
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        onSearch(searchTerm);
-    };
-
+    // Handle real-time search as user types
     const handleInputChange = (e) => {
-        setSearchTerm(e.target.value);
-        if (e.target.value === '') {
-            onSearch('');
-        }
+        const value = e.target.value;
+        setSearchTerm(value);
+        onSearch(value);
     };
 
     const handleFilterApply = (filters) => {
@@ -43,27 +38,34 @@ const SearchBar = ({ onSearch, onFilter }) => {
 
     return (
         <div className="search-bar-container mb-4 position-relative">
-            <Form onSubmit={handleSearch}>
-                <InputGroup>
-                    <Form.Control
-                        type="text"
-                        placeholder="Search staff by name, email, or username..."
-                        value={searchTerm}
-                        onChange={handleInputChange}
-                    />
-                    <Button type="submit" variant="outline-secondary">
-                        <Search />
-                    </Button>
-                    <Button
-                        ref={filterBtnRef}
-                        variant={hasActiveFilters ? "primary" : "outline-secondary"}
-                        onClick={() => setShowFilterPopup(prev => !prev)}
-                    >
-                        <Sliders />
-                        {hasActiveFilters && <span className="ms-2 badge bg-light text-dark">Active</span>}
-                    </Button>
-                </InputGroup>
-            </Form>
+            <InputGroup>
+                <Form.Control
+                    type="text"
+                    placeholder="Search staff by name, email, or username..."
+                    value={searchTerm}
+                    onChange={handleInputChange}
+                />
+                <Button 
+                    variant="outline-secondary"
+                    onClick={() => {
+                        // Clear search functionality
+                        if (searchTerm) {
+                            setSearchTerm('');
+                            onSearch('');
+                        }
+                    }}
+                >
+                    {searchTerm ? <span>×</span> : <Search />}
+                </Button>
+                <Button
+                    ref={filterBtnRef}
+                    variant={hasActiveFilters ? "primary" : "outline-secondary"}
+                    onClick={() => setShowFilterPopup(prev => !prev)}
+                >
+                    <Sliders />
+                    {hasActiveFilters && <span className="ms-2 badge bg-light text-dark">Active</span>}
+                </Button>
+            </InputGroup>
 
             {showFilterPopup && (
                 <FilterPopup
