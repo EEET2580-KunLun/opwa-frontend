@@ -4,10 +4,14 @@ import {PLACEHOLDER_USER_IMAGE} from "../../../../shared/constant.js";
 import {selectCurrentUser} from "../../../auth/store/authSlice.js";
 import {useSelector} from "react-redux";
 import {useStaffGridTable} from "./hooks/useStaffGridTable.js";
-
 import {useNavigate} from "react-router-dom";
+import SortableHeader from "../../../../shared/components/SortableHeader.jsx";
 
-const StaffGridTable = ({ staffData = [] }) => {
+const StaffGridTable = ({ 
+    staffData = [], 
+    currentSort = { field: 'firstName', direction: 'ASC' },
+    onSort 
+}) => {
     const currentUser = useSelector(selectCurrentUser);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [staffToDelete, setStaffToDelete] = useState(null);
@@ -40,18 +44,42 @@ const StaffGridTable = ({ staffData = [] }) => {
         });
     };
 
-
     return (
         <>
             <div className="card">
                 <Table className="table-hover mb-0">
                     <thead className="bg-primary text-white">
                     <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Role</th>
-                        <th>Shift</th>
+                        <SortableHeader 
+                            label="Name" 
+                            field="firstName" 
+                            currentSort={currentSort}
+                            onSort={onSort} 
+                        />
+                        <SortableHeader 
+                            label="Email" 
+                            field="email" 
+                            currentSort={currentSort}
+                            onSort={onSort} 
+                        />
+                        <SortableHeader 
+                            label="Phone" 
+                            field="phoneNumber" 
+                            currentSort={currentSort}
+                            onSort={onSort} 
+                        />
+                        <SortableHeader 
+                            label="Role" 
+                            field="role" 
+                            currentSort={currentSort}
+                            onSort={onSort} 
+                        />
+                        <SortableHeader 
+                            label="Shift" 
+                            field="shift" 
+                            currentSort={currentSort}
+                            onSort={onSort} 
+                        />
                         <th></th>
                     </tr>
                     </thead>
@@ -147,7 +175,7 @@ const StaffGridTable = ({ staffData = [] }) => {
                 </Modal.Footer>
             </Modal>
         </>
-    )
-}
+    );
+};
 
 export default StaffGridTable;

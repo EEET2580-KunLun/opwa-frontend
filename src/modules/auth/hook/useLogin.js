@@ -87,7 +87,7 @@ export const useLogin = () => {
 
     const handleGoogleLogin = async () => {
         try {
-
+            window.location.href = "http://localhost:8080/oauth2/authorization/google";
             console.log("Google login initiated");
         } catch (err) {
             setError('Google authentication failed. Please try again.');

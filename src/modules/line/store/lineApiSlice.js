@@ -5,10 +5,33 @@ import { convertToSnakeCase } from '../../../shared/utils.js';
 export const lineApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getLines: builder.query({
-            query: () => ({
-                url: LINE_ENDPOINTS.FETCH_ALL,
-                method: 'GET',
-            }),
+            query: (params = {}) => {
+                const {
+                    page = 0,
+                    size = 10,
+                    sortBy = 'name',
+                    direction = 'ASC',
+                    searchTerm = ''
+                } = params;
+
+                const queryParams = {
+                    page,
+                    size,
+                    sortBy,
+                    direction
+                };
+
+                // Add search term if provided
+                if (searchTerm) {
+                    queryParams.search = searchTerm;
+                }
+
+                return {
+                    url: LINE_ENDPOINTS.FETCH_ALL,
+                    method: 'GET',
+                    params: queryParams
+                };
+            },
             transformResponse: (response) => response.data,
             providesTags: ['Line']
         }),
@@ -22,12 +45,26 @@ export const lineApiSlice = apiSlice.injectEndpoints({
             providesTags: (result, error, id) => [{ type: 'Line', id }]
         }),
 
-        getStations: builder.query({
+       getStations: builder.query({
             query: () => ({
                 url: STATION_ENDPOINTS.FETCH_ALL,
                 method: 'GET',
+                // Request all stations for dropdown by setting large size
+                params: {
+                    page: 0,
+                    size: 1000, // Large enough to get all stations
+                    active: true // Only get active stations
+                }
             }),
-            transformResponse: (response) => response.data || [],
+            // Update the transform response to extract stations from paginated structure
+            transformResponse: (response) => {
+                // Check if response has the new paginated structure
+                if (response?.data?.content && Array.isArray(response.data.content)) {
+                    return response.data.content;
+                }
+                // Fallback to handle old response format
+                return response?.data || [];
+            },
             providesTags: ['Station']
         }),
 
@@ -147,7 +184,6 @@ export const lineApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
-    useGetStationsQuery,
     useGetLinesQuery,
     useGetLineByIdQuery,
     useCreateLineMutation,
@@ -160,4 +196,5 @@ export const {
     useResumeLineMutation,
     useFindTripsQuery,
     useFindUpcomingTripsQuery,
+    useGetStationsQuery,
 } = lineApiSlice;
