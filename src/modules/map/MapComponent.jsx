@@ -345,6 +345,6 @@ export default function MapComponent({ isStationMode=false ,selectedTrip = null,
     }, [stationData, selectedTrip, mapInitialized]);
 
     return (
-        <div ref={mapContainer} style={{width: '100%', height: '1000px', borderRadius: '8px'}}/>
+        <div ref={mapContainer} style={{width: '100%', height: '750px', borderRadius: '8px'}}/>
     );
 }

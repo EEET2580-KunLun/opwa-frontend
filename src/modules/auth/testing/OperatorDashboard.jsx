@@ -78,26 +78,6 @@ const OperatorDashboard = () => {
                     </Card>
                 </Col>
 
-                <Col md={6} lg={3} className="mb-4">
-                    <Card className="h-100 shadow-sm">
-                        <Card.Body className="d-flex flex-column">
-                            <div className="text-center mb-3">
-                                <FaUsers size={48} className="text-warning" />
-                            </div>
-                            <Card.Title className="text-center">My Profile</Card.Title>
-                            <Card.Text className="text-muted">
-                                View and update your operator profile.
-                            </Card.Text>
-                            <Button
-                                variant="warning"
-                                className="mt-auto"
-                                onClick={() => handleNavigate('/operator/profile')}
-                            >
-                                View Profile
-                            </Button>
-                        </Card.Body>
-                    </Card>
-                </Col>
             </Row>
         </div>
     );

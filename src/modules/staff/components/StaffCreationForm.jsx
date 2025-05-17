@@ -42,10 +42,12 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
     const [avatarUploading, setAvatarUploading] = useState(false);
     const [avatarChanged, setAvatarChanged] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
 
     // Determine if we're in edit mode from either props or URL
-    const isEditMode = propIsEditMode || !!params.id;
+    const isEditMode = propIsEditMode || !!params.id || location.state?.isEditMode;
+    const editorRole = location.state?.editorRole
 
     // Get initialData from props or location state
     const routeInitialData = location.state?.initialData;
@@ -107,6 +109,15 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
     useEffect(() => {
         handleClearForm()
     }, [isEditMode, routeInitialData]);
+
+    useEffect(() => {
+        console.log(editorRole)
+        if (editorRole === "ADMIN"){
+            setIsAdmin(true);
+        } else {
+            setIsAdmin(false);
+        }
+    }, [editorRole]);
 
     const handleBlur = (e) => {
         const { name, value } = e.target;
@@ -926,6 +937,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                             name="role"
                             value={formData.role}
                             onChange={handleInputChange}
+                            disabled={!isAdmin}
                             onBlur={handleBlur}
                             label="Staff role"
                         >
@@ -933,7 +945,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                             <MenuItem value="OPERATOR">Operator</MenuItem>
                             <MenuItem value="TICKET_AGENT">Ticket Agent</MenuItem>
                         </Select>
-                        {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
+                        <FormHelperText>{errors.shift || (!isAdmin ? "Only Admins can change role" : "")}</FormHelperText>
                     </FormControl>
                 </Grid>
 
@@ -1048,12 +1060,15 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                 {/* Shift selection */}
                 <Grid item xs={12}>
                     <FormControl fullWidth error={!!errors.shift}>
-                        <InputLabel id="shift-label">Choose a shift</InputLabel>
+                        <InputLabel
+                            id="shift-label">Choose a shift
+                        </InputLabel>
                         <Select
                             labelId="shift-label"
                             id="shift"
                             name="shift"
                             value={formData.shift}
+                            disabled={!isAdmin}
                             onChange={handleInputChange}
                             label="Choose a shift"
                         >
@@ -1061,7 +1076,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                             <MenuItem value="EVENING">Evening: 02:00 PM – 10:00 PM</MenuItem>
                             <MenuItem value="NIGHT">Night: 10:00 PM – 06:00 AM</MenuItem>
                         </Select>
-                        {errors.shift && <FormHelperText>{errors.shift}</FormHelperText>}
+                        <FormHelperText>{errors.shift || (!isAdmin ? "Only Admins can change shift" : "")}</FormHelperText>
                     </FormControl>
                 </Grid>
 
@@ -1071,6 +1086,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         <FormControlLabel
                             control={
                                 <Switch
+                                    disabled={!isAdmin}
                                     checked={formData.employed}
                                     onChange={(e) => {
                                         setFormData({
@@ -1098,6 +1114,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                                 </Box>
                             }
                         />
+                        <FormHelperText>{errors.shift || (!isAdmin ? "Only Admins can change status" : "")}</FormHelperText>
                     </FormControl>
                 </Grid>
 
