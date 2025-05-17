@@ -7,6 +7,8 @@ import Page500 from "../../shared/errorPage/500.jsx";
 import Page403 from "../../shared/errorPage/403.jsx";
 import Page401 from "../../shared/errorPage/401.jsx";
 import TicketAnalytics from '../../modules/statistics/components/TicketAnalytics.jsx';
+import MapComponent from "../../modules/map/MapComponent.jsx";
+import OAuth2CallbackHandling from "../../modules/auth/component/OAuth2CallbackHandling.jsx";
 
 const WelcomeUI = lazy(() => import('../../modules/auth/component/welcoming/WelcomeUI.jsx'));
 const About = lazy(() => import('../../modules/auth/component/welcoming/About.jsx'));
@@ -44,6 +46,7 @@ const RouteConfig = () => {
                 <Route path="/403" element={<Page403 />} />
                 <Route path="/404" element={<Page404 />} />
                 <Route path="/500" element={<Page500 />} />
+                <Route path="/OAuth2/callback" element={<OAuth2CallbackHandling />} />
                 {/*<Route path="/unauthorized" element={<Unauthorized />} />*/}
 
                 {/* Admin Routes */}
@@ -69,6 +72,7 @@ const RouteConfig = () => {
                     <Route path="/admin/tickets/history" element={<TicketHistory />} />
                     
                     <Route path="/admin/statistics/tickets" element={<TicketAnalytics />} />
+                    <Route path="/admin/profile" element={<TicketHistory />} />
                 </Route>
 
                 {/* Operator Routes */}
@@ -82,6 +86,13 @@ const RouteConfig = () => {
                     <Route path="/operator/lines/:id/schedule" element={<LineSchedule />} />
                     <Route path="/operator/lines/:id/suspend" element={<LineSuspend />} />
                     <Route path="/operator/lines/:id/map" element={<LineMap />} />
+                    <Route path="/operator/profile" element={<StaffCreationForm />} />
+
+                    <Route path="/operator/stations" element={<StationList />} />
+                    <Route path="/operator/stations/create" element={<StationForm />} />
+                    <Route path="/operator/stations/:id/edit" element={<StationForm />} />
+
+                    <Route path="/operator/map" element={<MapComponent/>} />
                 </Route>
 
                 {/* Ticket Agent Routes */}

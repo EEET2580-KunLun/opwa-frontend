@@ -47,8 +47,6 @@ export const useLogin = () => {
 
         try {
             const response = await login({email, password});
-            console.log("Login response:", response);
-
             // Check if the response has error
             if(response.error){
                 setError(response.error?.data?.meta?.message || "Authentication failed");
@@ -87,14 +85,13 @@ export const useLogin = () => {
 
     const handleGoogleLogin = async () => {
         try {
-
+            window.location.href = "http://localhost:8080/oauth2/authorization/google";
             console.log("Google login initiated");
         } catch (err) {
             setError('Google authentication failed. Please try again.');
             console.error('Google login error:', err);
         }
     };
-
     return {
         email,
         password,

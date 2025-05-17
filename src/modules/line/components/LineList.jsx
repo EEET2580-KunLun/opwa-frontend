@@ -561,7 +561,7 @@ const LineList = () => {
                         </Button>
                     </Card.Header>
                     <Card.Body>
-                        <div style={{ height: '1000px' }}>
+                        <div style={{ height: '750px' }}>
                             <MapComponent selectedTrip={selectedLine} isStationMode={false} selectedStationLoc={null}/>
                         </div>
                     </Card.Body>

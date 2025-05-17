@@ -40,7 +40,7 @@ const StaffGridTable = ({
     const handleEditClick = (staff) => {
         // Navigate to the edit page with staff data
         navigate(`/admin/staff/edit/${staff.id}`, {
-            state: { initialData: staff }
+            state: { isEditMode: true,initialData: staff, editorRole: currentUser.role}
         });
     };
 

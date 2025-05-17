@@ -8,6 +8,7 @@ const PAWA_BASE_URL = `${PAWA_API_URL}/api`;
 
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
+    VALIDATE: '/auth/validate',
     LOGIN: `/auth/login`,
     LOGOUT: `/auth/logout`,
     REGISTER: `/auth/register`,
