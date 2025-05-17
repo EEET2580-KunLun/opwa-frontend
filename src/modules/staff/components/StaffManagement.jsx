@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Row, Col, Button, Pagination } from 'react-bootstrap';
-import { PeopleFill } from 'react-bootstrap-icons';
+import { Container, Row, Col, Button, Pagination, Alert } from 'react-bootstrap';
+import { PeopleFill, FilterCircleFill, XCircleFill } from 'react-bootstrap-icons';
 import StaffGridTable from "./Staff Grid Table/StaffGridTable.jsx";
 import SearchBar from "./Search Bar/SearchBar.jsx";
 import { useDispatch } from "react-redux";
@@ -19,9 +19,12 @@ const StaffManagement = () => {
         size: 10,
         sortBy: 'firstName',
         direction: 'ASC',
-        employed: true,
-        searchTerm: ''
+        employed: true
     });
+    
+    // Client-side search state
+    const [clientSearchTerm, setClientSearchTerm] = useState('');
+    const [clientFilters, setClientFilters] = useState({});
     
     const [activeTab, setActiveTab] = useState('active');
     
@@ -30,6 +33,7 @@ const StaffManagement = () => {
         data: staffResponse, 
         isLoading, 
         isFetching,
+        error,
         refetch
     } = useFetchAllStaffQuery(queryParams);
     
@@ -39,6 +43,67 @@ const StaffManagement = () => {
     const totalPages = staffResponse?.data?.total_pages || 0;
     const currentPage = staffResponse?.data?.page || 0;
     const isLastPage = staffResponse?.data?.last || false;
+    
+    // Check if client-side search/filter is active
+    const isSearchActive = clientSearchTerm.trim() !== '';
+    const isFilterActive = Object.keys(clientFilters).length > 0;
+    const isClientFilteringActive = isSearchActive || isFilterActive;
+    
+    // Client-side filtered staff data
+    const filteredStaffs = useMemo(() => {
+        if (!isClientFilteringActive) return staffs;
+        
+        return staffs.filter(staff => {
+            // Filter by search term (name, email, username)
+            if (isSearchActive) {
+                const searchTerm = clientSearchTerm.toLowerCase();
+                const fullName = `${staff.first_name || ''} ${staff.middle_name || ''} ${staff.last_name || ''}`.toLowerCase();
+                const email = (staff.email || '').toLowerCase();
+                const username = (staff.username || '').toLowerCase();
+                
+                const matchesSearch = 
+                    fullName.includes(searchTerm) || 
+                    email.includes(searchTerm) || 
+                    username.includes(searchTerm);
+                    
+                if (!matchesSearch) return false;
+            }
+            
+            // Filter by advanced filters
+            if (isFilterActive) {
+                for (const [key, value] of Object.entries(clientFilters)) {
+                    if (!value && value !== false) continue; // Skip empty filters
+                    
+                    switch (key) {
+                        case 'role':
+                            if (staff.role !== value) return false;
+                            break;
+                        case 'shift':
+                            if (staff.shift !== value) return false;
+                            break;
+                        case 'city':
+                            if (!staff.residence_address_entity?.city?.toLowerCase().includes(value.toLowerCase()))
+                                return false;
+                            break;
+                        case 'district':
+                            if (!staff.residence_address_entity?.district?.toLowerCase().includes(value.toLowerCase()))
+                                return false;
+                            break;
+                        case 'birthYearBefore':
+                            {
+                                const birthYear = new Date(staff.date_of_birth).getFullYear();
+                                if (birthYear > parseInt(value)) return false;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            
+            return true;
+        });
+    }, [staffs, clientSearchTerm, clientFilters, isClientFilteringActive, isSearchActive, isFilterActive]);
     
     // Active and inactive counts - we should get this from a separate API call ideally
     // For now, we'll just use the total_elements when the employed filter is applied
@@ -52,9 +117,11 @@ const StaffManagement = () => {
         }
     }, [staffResponse, dispatch]);
     
-    // Handle tab change (active/inactive)
+    // Handle tab change (active/inactive) - clear client search when changing tabs
     const handleTabChange = (tab) => {
         setActiveTab(tab);
+        setClientSearchTerm('');
+        setClientFilters({});
         setQueryParams(prev => ({
             ...prev,
             employed: tab === 'active',
@@ -62,18 +129,20 @@ const StaffManagement = () => {
         }));
     };
     
-    // Handle search
+    // Handle client-side search
     const handleSearch = (term) => {
-        setQueryParams(prev => ({
-            ...prev,
-            searchTerm: term,
-            page: 0 // Reset to first page
-        }));
+        setClientSearchTerm(term);
     };
     
     // Handle advanced filters
     const handleFilter = (filters) => {
-       console.log("Advanced filters:", filters);
+        setClientFilters(filters);
+    };
+    
+    // Clear all client filters
+    const clearClientFilters = () => {
+        setClientSearchTerm('');
+        setClientFilters({});
     };
     
     // Handle sorting
@@ -139,12 +208,52 @@ const StaffManagement = () => {
                             onSearch={handleSearch}
                             onFilter={handleFilter}
                         />
+                        
+                        {/* Client filtering indicator */}
+                        {isClientFilteringActive && (
+                            <Alert 
+                                variant="info" 
+                                className="d-flex justify-content-between align-items-center mb-3"
+                            >
+                                <div>
+                                    <FilterCircleFill className="me-2" />
+                                    {isSearchActive && (
+                                        <span>
+                                            Searching for "{clientSearchTerm}" - 
+                                        </span>
+                                    )}
+                                    <span className="ms-1">
+                                        Found {filteredStaffs.length} of {staffs.length} staff members
+                                    </span>
+                                </div>
+                                <Button 
+                                    variant="outline-secondary" 
+                                    size="sm" 
+                                    onClick={clearClientFilters}
+                                >
+                                    <XCircleFill className="me-1" />
+                                    Clear Filters
+                                </Button>
+                            </Alert>
+                        )}
 
-                        {loading ? (
+                        {error ? (
+                            <Alert variant="danger" className="my-3">
+                                Error loading staff data: {error.error || error.data?.message || 'Unknown error'}
+                                <Button 
+                                    variant="outline-primary" 
+                                    size="sm" 
+                                    className="ms-3" 
+                                    onClick={() => refetch()}
+                                >
+                                    Retry
+                                </Button>
+                            </Alert>
+                        ) : loading ? (
                             <div className="text-center py-4">Loading staff data...</div>
-                        ) : staffs.length > 0 ? (
+                        ) : (isClientFilteringActive ? filteredStaffs : staffs).length > 0 ? (
                             <StaffGridTable 
-                                staffData={staffs}
+                                staffData={isClientFilteringActive ? filteredStaffs : staffs}
                                 currentSort={{
                                     field: queryParams.sortBy,
                                     direction: queryParams.direction
@@ -152,10 +261,15 @@ const StaffManagement = () => {
                                 onSort={handleSort}
                             />
                         ) : (
-                            <div className="text-center py-4">No staff data available</div>
+                            <div className="text-center py-4">
+                                {isClientFilteringActive 
+                                    ? "No staff members match your search criteria" 
+                                    : "No staff data available"}
+                            </div>
                         )}
 
-                        {totalPages > 0 && (
+                        {/* Only show pagination when not filtering client-side and we have pages */}
+                        {!isClientFilteringActive && totalPages > 0 && (
                             <div className="pagination-controls d-flex justify-content-between align-items-center mt-4">
                                 <div>
                                     Showing {staffs.length} of {totalElements} staff members
