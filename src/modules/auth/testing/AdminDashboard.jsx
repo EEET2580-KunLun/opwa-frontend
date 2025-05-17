@@ -135,7 +135,7 @@ const AdminDashboard = () => {
                             <Button
                                 variant="info"
                                 className="mt-auto"
-                                onClick={() => handleNavigate('/admin/statistics/tickets')}
+                                onClick={() => handleNavigate('/admin/statistics')}
                             >
                                 View Reports
                             </Button>

@@ -55,8 +55,8 @@ const SideBar = ({user}) => {
             </Nav.Link>
             <Nav.Link
                 as={Link}
-                to="/admin/statistics/tickets"
-                className={`sidebar-link ${activeLink.startsWith('/admin/statistics/tickets') ? 'fw-bold' : ''}`}
+                to="/admin/statistics"
+                className={`sidebar-link ${activeLink.startsWith('/admin/statistics') ? 'fw-bold' : ''}`}
             >
                 Statistics & Analytics
             </Nav.Link>
