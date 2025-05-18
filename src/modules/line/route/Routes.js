@@ -3,7 +3,7 @@ import { Route } from 'react-router-dom';
 import ProtectedRoute from '../../../app/route/ProtectedRoute';
 
 // Lazy load components for better performance
-const LineList = React.lazy(() => import('../components/LineList'));
+const LineList = React.lazy(() => import('../components/LineList/LineList.jsx'));
 const LineForm = React.lazy(() => import('../components/LineForm'));
 const LineSchedule = React.lazy(() => import('../components/LineSchedule'));
 const LineSuspend = React.lazy(() => import('../components/LineSuspend'));
