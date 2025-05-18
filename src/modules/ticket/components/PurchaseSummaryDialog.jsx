@@ -9,18 +9,43 @@ import {
     ListItem,
     ListItemText,
     Typography,
-    Alert
+    Alert,
+    Box,
+    Divider
 } from '@mui/material';
 
-export default function PurchaseSummaryDialog({ open, onClose, items, total, warning, onConfirm, disableConfirm = false }) {
+export default function PurchaseSummaryDialog({ 
+    open, 
+    onClose, 
+    items, 
+    total, 
+    warning, 
+    onConfirm, 
+    disableConfirm = false,
+    passengerInfo = null
+}) {
     return (
-
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}>Purchase Summary</Typography>
             </DialogTitle>
 
             <DialogContent>
+                {passengerInfo && (
+                    <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                            Passenger Information
+                        </Typography>
+                        <Typography variant="body2">
+                            Name: {passengerInfo.firstName} {passengerInfo.middleName || ''} {passengerInfo.lastName}
+                        </Typography>
+                        <Typography variant="body2">
+                            National ID: {passengerInfo.nationalID}
+                        </Typography>
+                        <Divider sx={{ my: 1.5 }} />
+                    </Box>
+                )}
+                
                 <List disablePadding>
                     {items.map(i => (
                         <ListItem key={i.typeKey} sx={{ py: 1 }}>

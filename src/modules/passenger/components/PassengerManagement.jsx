@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Button, Pagination, Alert, Tabs, Tab } from 'react-bootstrap';
+import { Container, Row, Col, Button, Alert, Tabs, Tab } from 'react-bootstrap';
 import { PeopleFill, FilterCircleFill, XCircleFill } from 'react-bootstrap-icons';
 import SearchBar from '../../../shared/components/SearchBar.jsx';
 import { useNavigate } from "react-router-dom";
-import { useGetAllPassengersQuery } from '../store/pawaPassengerApiSlice';
+import { useGetAllPassengersQuery } from "../store/pawaPassengerApiSlice.js";
 import PassengerGridTable from './PassengerGridTable.jsx';
-import PassengerTicketPurchase from './PassengerTicketPurchase.jsx';
 
 const PassengerManagement = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('passengers');
     
     // Search and filter state
     const [searchTerm, setSearchTerm] = useState('');
@@ -82,78 +80,66 @@ const PassengerManagement = () => {
                             </Button>
                         </div>
 
-                        <Tabs
-                            activeKey={activeTab}
-                            onSelect={(k) => setActiveTab(k)}
-                            className="mb-3"
-                        >
-                            <Tab eventKey="passengers" title="Passenger List">
-                                <SearchBar 
-                                    onSearch={handleSearch}
-                                    onFilter={handleFilter}
-                                    placeholder="Search by name, ID, or phone..." 
-                                    showFilterButton={true}
-                                />
-                                
-                                {/* Filter indicator */}
-                                {(searchTerm || Object.keys(filters).length > 0) && (
-                                    <Alert 
-                                        variant="info" 
-                                        className="d-flex justify-content-between align-items-center mb-3"
-                                    >
-                                        <div>
-                                            <FilterCircleFill className="me-2" />
-                                            {searchTerm && (
-                                                <span>
-                                                    Searching for "{searchTerm}" - 
-                                                </span>
-                                            )}
-                                            <span className="ms-1">
-                                                Found {filteredPassengers.length} of {passengers.length} passengers
-                                            </span>
-                                        </div>
-                                        <Button 
-                                            variant="outline-secondary" 
-                                            size="sm" 
-                                            onClick={clearFilters}
-                                        >
-                                            <XCircleFill className="me-1" />
-                                            Clear Filters
-                                        </Button>
-                                    </Alert>
-                                )}
+                        <SearchBar 
+                            onSearch={handleSearch}
+                            onFilter={handleFilter}
+                            placeholder="Search by name, ID, or phone..." 
+                            showFilterButton={true}
+                        />
+                        
+                        {/* Filter indicator */}
+                        {(searchTerm || Object.keys(filters).length > 0) && (
+                            <Alert 
+                                variant="info" 
+                                className="d-flex justify-content-between align-items-center mb-3"
+                            >
+                                <div>
+                                    <FilterCircleFill className="me-2" />
+                                    {searchTerm && (
+                                        <span>
+                                            Searching for "{searchTerm}" - 
+                                        </span>
+                                    )}
+                                    <span className="ms-1">
+                                        Found {filteredPassengers.length} of {passengers.length} passengers
+                                    </span>
+                                </div>
+                                <Button 
+                                    variant="outline-secondary" 
+                                    size="sm" 
+                                    onClick={clearFilters}
+                                >
+                                    <XCircleFill className="me-1" />
+                                    Clear Filters
+                                </Button>
+                            </Alert>
+                        )}
 
-                                {error ? (
-                                    <Alert variant="danger" className="my-3">
-                                        Error loading passenger data: {error.error || error.data?.message || 'Unknown error'}
-                                        <Button 
-                                            variant="outline-primary" 
-                                            size="sm" 
-                                            className="ms-3" 
-                                            onClick={() => refetch()}
-                                        >
-                                            Retry
-                                        </Button>
-                                    </Alert>
-                                ) : isLoading ? (
-                                    <div className="text-center py-4">Loading passenger data...</div>
-                                ) : filteredPassengers.length > 0 ? (
-                                    <PassengerGridTable 
-                                        passengerData={filteredPassengers}
-                                    />
-                                ) : (
-                                    <div className="text-center py-4">
-                                        {searchTerm || Object.keys(filters).length > 0
-                                            ? "No passengers match your search criteria" 
-                                            : "No passenger data available"}
-                                    </div>
-                                )}
-                            </Tab>
-                            
-                            <Tab eventKey="ticketPurchase" title="Purchase Tickets">
-                                <PassengerTicketPurchase passengers={passengers} />
-                            </Tab>
-                        </Tabs>
+                        {error ? (
+                            <Alert variant="danger" className="my-3">
+                                Error loading passenger data: {error.error || error.data?.message || 'Unknown error'}
+                                <Button 
+                                    variant="outline-primary" 
+                                    size="sm" 
+                                    className="ms-3" 
+                                    onClick={() => refetch()}
+                                >
+                                    Retry
+                                </Button>
+                            </Alert>
+                        ) : isLoading ? (
+                            <div className="text-center py-4">Loading passenger data...</div>
+                        ) : filteredPassengers.length > 0 ? (
+                            <PassengerGridTable 
+                                passengerData={filteredPassengers}
+                            />
+                        ) : (
+                            <div className="text-center py-4">
+                                {searchTerm || Object.keys(filters).length > 0
+                                    ? "No passengers match your search criteria" 
+                                    : "No passenger data available"}
+                            </div>
+                        )}
                     </div>
                 </Col>
             </Row>

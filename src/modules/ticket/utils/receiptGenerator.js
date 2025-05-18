@@ -1,10 +1,23 @@
 export const generateReceipt = (purchase) => {
-    const { items, total, paymentMethod, passengerId, transactionId, timestamp, cashReceived, agentId } = purchase;
+    const { 
+        items, 
+        total, 
+        paymentMethod, 
+        passengerId, 
+        passengerName,
+        email,
+        transactionId, 
+        timestamp, 
+        cashReceived, 
+        agentId 
+    } = purchase;
 
     const receiptData = {
         transactionId,
         timestamp: new Date(timestamp).toLocaleString(),
         passengerId: passengerId || 'Guest',
+        passengerName: passengerName || 'Guest Customer',
+        email: email || 'Not provided',
         items: items.map(item => ({
             name: item.name,
             quantity: item.quantity,
@@ -18,8 +31,7 @@ export const generateReceipt = (purchase) => {
         agentId
     };
 
-    // This would typically connect to a receipt printer API
-    // For now, we'll just generate a printable window
+    // Generate printable receipt window
     const receiptWindow = window.open('', '_blank');
 
     if (receiptWindow) {
@@ -46,7 +58,9 @@ export const generateReceipt = (purchase) => {
           </div>
           
           <div class="details">
+            <p>Passenger: ${receiptData.passengerName}</p>
             <p>Passenger ID: ${receiptData.passengerId}</p>
+            <p>Email: ${receiptData.email}</p>
             <p>Agent ID: ${receiptData.agentId}</p>
           </div>
           

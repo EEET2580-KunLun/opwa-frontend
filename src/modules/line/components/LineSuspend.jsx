@@ -81,7 +81,7 @@ const LineSuspend = () => {
         };
 
         try {
-            await suspendLine(id, suspensionData).unwrap();
+            await suspendLine({id, suspensionReq: suspensionData }).unwrap();
             toast.success('Line suspended successfully');
             navigate('/operator/lines');
         } catch (error) {

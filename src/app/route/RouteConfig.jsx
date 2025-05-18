@@ -10,6 +10,7 @@ import MapComponent from "../../modules/map/MapComponent.jsx";
 import OAuth2CallbackHandling from "../../modules/auth/component/OAuth2CallbackHandling.jsx";
 import StatisticsRoutes from '../../modules/statistics/routes/StatisticsRoutes.jsx';
 import PassengerRoutes from '../../modules/passenger/route/PassengerRoutes.jsx';
+import TicketRoutes from '../../modules/ticket/routes/TicketRoutes.jsx';
 import StaffRegisterForm from "../../modules/staff/components/StaffRegisterForm.jsx";
 const WelcomeUI = lazy(() => import('../../modules/auth/component/welcoming/WelcomeUI.jsx'));
 const About = lazy(() => import('../../modules/auth/component/welcoming/About.jsx'));
@@ -38,7 +39,7 @@ const RouteConfig = () => {
         <Suspense fallback={<div>Loading...</div>}>
             <Routes>
                 {/* Public routes */}
-                <Route path="/" element={<WelcomeUI />} />
+                <Route path="/" element={<WelcomeUI />} />`
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -106,6 +107,7 @@ const RouteConfig = () => {
 
                 {StatisticsRoutes}
                 {PassengerRoutes}
+                {TicketRoutes}
             </Routes>
         </Suspense>
     )

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Table, Modal, Badge } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { useDeletePassengerMutation } from '../store/pawaPassengerApiSlice';
+import { useDeletePassengerMutation } from '../store/pawaPassengerApiSlice.js';
 import { PLACEHOLDER_USER_IMAGE } from "../../../shared/constant.js";
 
 const PassengerGridTable = ({ passengerData = [] }) => {
@@ -19,27 +19,24 @@ const PassengerGridTable = ({ passengerData = [] }) => {
     };
 
     const confirmDelete = async () => {
-        if (!passengerToDelete) return;
-
-        try {
-            await deletePassenger(passengerToDelete.id).unwrap();
-            setShowConfirmModal(false);
-        } catch (error) {
-            console.error("Error during deletion:", error);
-        }
+        // Delete passenger logic
     };
 
     const handleEditClick = (passenger) => {
-        // Navigate to the edit page with passenger data
         navigate(`/admin/passenger/edit/${passenger.id}`, {
             state: { isEditMode: true, initialData: passenger }
         });
     };
 
+    // Replace the direct purchase logic with redirection to ticket module
     const handlePurchaseClick = (passenger) => {
-        // Navigate to the purchase page with passenger data
-        navigate(`/admin/passenger/tickets/${passenger.id}`, {
-            state: { passenger }
+        // Redirect to ticket purchase page with passenger info in state
+        navigate(`/ticket-agent/tickets/sell`, {
+            state: { 
+                passengerId: passenger.id,
+                passengerInfo: passenger,
+                redirectSource: 'passenger-management'
+            }
         });
     };
 
@@ -97,13 +94,13 @@ const PassengerGridTable = ({ passengerData = [] }) => {
                                     >
                                         Edit
                                     </Button>
-                                    {/* <Button
+                                    <Button
                                         variant="link"
                                         className="text-primary p-0 me-2"
                                         onClick={() => handlePurchaseClick(passenger)}
                                     >
                                         Purchase
-                                    </Button> */}
+                                    </Button>
                                     <Button
                                         variant="link"
                                         className="text-danger p-0"

@@ -10,7 +10,7 @@ import {
     Paper
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { useGetAllPurchasesQuery } from '../store/ticketApiSlice';
+import { useGetAllTicketsQuery } from '../store/pawaTicketApiSlice';
 import { formatDate } from '../utils/formatUtils';
 
 const ListContainer = styled(Paper)(({ theme }) => ({
@@ -24,7 +24,7 @@ const LoadingWrapper = styled('div')(({ theme }) => ({
 }));
 
 export default function TicketList() {
-    const { data = [], isLoading } = useGetAllPurchasesQuery();
+    const { data = [], isLoading } = useGetAllTicketsQuery();
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 

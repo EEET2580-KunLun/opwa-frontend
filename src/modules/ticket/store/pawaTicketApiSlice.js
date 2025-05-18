@@ -47,4 +47,5 @@ export const pawaTicketApiSlice = pawaApiSlice.injectEndpoints({
 export const {
     useGetPawaTicketTypesQuery,
     usePurchaseTicketsForPassengerMutation,
+    useGetAllTicketsQuery,
 } = pawaTicketApiSlice;
