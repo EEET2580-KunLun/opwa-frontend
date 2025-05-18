@@ -7,7 +7,9 @@ import {
     TableHead,
     TableRow,
     TablePagination,
-    Paper
+    Paper,
+    Chip,
+    Typography
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useGetAllTicketsQuery } from '../store/pawaTicketApiSlice';
@@ -23,12 +25,33 @@ const LoadingWrapper = styled('div')(({ theme }) => ({
     textAlign: 'center',
 }));
 
+// Status color mapping
+const getStatusColor = (status) => {
+    switch(status) {
+        case 'ACTIVE': return 'success';
+        case 'INACTIVE': return 'default';
+        case 'EXPIRED': return 'error';
+        default: return 'default';
+    }
+};
+
 export default function TicketList() {
     const { data = [], isLoading } = useGetAllTicketsQuery();
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-    if (isLoading) return <LoadingWrapper>Loading...</LoadingWrapper>;
+    if (isLoading) return <LoadingWrapper>Loading tickets...</LoadingWrapper>;
+
+    // Handle empty data case
+    if (!data.length) {
+        return (
+            <ListContainer>
+                <Typography variant="h6" align="center" sx={{ p: 4 }}>
+                    No tickets found
+                </Typography>
+            </ListContainer>
+        );
+    }
 
     return (
         <ListContainer>
@@ -36,23 +59,38 @@ export default function TicketList() {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Agent ID</TableCell>
-                            <TableCell>Ticket Type</TableCell>
-                            <TableCell>Quantity</TableCell>
-                            <TableCell>Payment</TableCell>
-                            <TableCell>Date</TableCell>
+                            <TableCell>Ticket ID</TableCell>
+                            <TableCell>Type</TableCell>
+                            <TableCell>Station Count</TableCell>
+                            <TableCell>Purchase Time</TableCell>
+                            <TableCell>Status</TableCell>
+                            <TableCell>Price</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {data
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map(row => (
-                                <TableRow key={row.id}>
-                                    <TableCell>{row.agentId}</TableCell>
-                                    <TableCell>{row.typeName}</TableCell>
-                                    <TableCell>{row.quantity}</TableCell>
-                                    <TableCell>{row.paymentMethod}</TableCell>
-                                    <TableCell>{formatDate(row.timestamp)}</TableCell>
+                            .map(ticket => (
+                                <TableRow key={ticket.id}>
+                                    <TableCell>{ticket.id}</TableCell>
+                                    <TableCell>{ticket.type}</TableCell>
+                                    <TableCell>
+                                        {ticket.stationCount !== null ? ticket.stationCount : 'N/A'}
+                                    </TableCell>
+                                    <TableCell>{formatDate(ticket.purchaseTime)}</TableCell>
+                                    <TableCell>
+                                        <Chip 
+                                            label={ticket.status} 
+                                            color={getStatusColor(ticket.status)}
+                                            size="small"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        {new Intl.NumberFormat('vi-VN', {
+                                            style: 'currency',
+                                            currency: 'VND'
+                                        }).format(ticket.price)}
+                                    </TableCell>
                                 </TableRow>
                             ))}
                     </TableBody>

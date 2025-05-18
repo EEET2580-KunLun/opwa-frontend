@@ -72,19 +72,27 @@ export default function PassengerPurchase() {
     const handleConfirm = async () => {
         setIsSubmitting(true);
         try {
-            // Include email in the purchase request
+            // Transform items into the format expected by the API
+            const type = items.map(item => item.typeKey);
+            const stationCount = items.map(item => {
+                // Extract station count from typeKey if applicable
+                // For ONE_WAY tickets, you might need to extract the station count
+                // For DAILY tickets, it might be 0 or null
+                // Adjust this logic based on your ticket type structure
+                if (item.typeKey.includes('ONE_WAY')) {
+                    // Extract station count (assuming it's embedded in the key or available elsewhere)
+                    return item.stationCount || 0;
+                }
+                return 0; // Default for passes like DAILY that don't have station counts
+            });
+
+            // Create request in the format expected by the API
             const purchaseData = {
-                purchaserId: passengerId,
-                items,
-                paymentMethod: method,
-                cashReceived,
-                email
+                type: type,
+                stationCount: stationCount,
+                userId: passengerInfo?.userId || "",
+                email: email
             };
-            
-            if (passengerInfo?.userId) {
-                // Add user ID for registered passengers from PAWA
-                purchaseData.userId = passengerInfo.userId;
-            }
             
             const result = await createPurchase(purchaseData).unwrap();
 
@@ -101,7 +109,8 @@ export default function PassengerPurchase() {
                     email: email,
                     items,
                     total: totalCost,
-                    paymentMethod: method, cashReceived,
+                    paymentMethod: method, 
+                    cashReceived,
                     agentId: currentUser?.id || 'AGENT'
                 });
             }
@@ -123,7 +132,6 @@ export default function PassengerPurchase() {
             setIsSubmitting(false);
         }
     };
-
     const handleScanQR = async () => {
         setIsLoading(true);
         try {
