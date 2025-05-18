@@ -9,6 +9,7 @@ import Page401 from "../../shared/errorPage/401.jsx";
 import MapComponent from "../../modules/map/MapComponent.jsx";
 import OAuth2CallbackHandling from "../../modules/auth/component/OAuth2CallbackHandling.jsx";
 import StatisticsRoutes from '../../modules/statistics/routes/StatisticsRoutes.jsx';
+import PassengerRoutes from '../../modules/passenger/route/PassengerRoutes.jsx';
 import StaffRegisterForm from "../../modules/staff/components/StaffRegisterForm.jsx";
 const WelcomeUI = lazy(() => import('../../modules/auth/component/welcoming/WelcomeUI.jsx'));
 const About = lazy(() => import('../../modules/auth/component/welcoming/About.jsx'));
@@ -104,6 +105,7 @@ const RouteConfig = () => {
                 </Route>
 
                 {StatisticsRoutes}
+                {PassengerRoutes}
             </Routes>
         </Suspense>
     )

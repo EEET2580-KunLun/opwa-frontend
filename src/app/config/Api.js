@@ -64,15 +64,22 @@ export const STATION_ENDPOINTS = {
 };
 
 export const TICKET_ENDPOINTS = {
-    TYPES: '/tickets/types',
-    PURCHASE: '/tickets/purchase',
-    HISTORY: '/tickets/history',
-    ALL: '/tickets/all',
+    TYPES: '/tickets/type',
+    AGENT_PURCHASE: '/tickets/agent-purchase',
+    ALL: '/tickets/',
 };
 
 export const STATISTICS_ENDPOINTS = {
     USERS: '/statistics/users',
     TICKETS: '/statistics/tickets',
+};
+
+export const PASSENGER_ENDPOINTS = {
+    ALL: '/passenger/all',
+    FETCH_BY_ID: (id) => `/passenger/${id}`,
+    CREATE: '/passenger',
+    UPDATE: (id) => `/passenger/${id}`,
+    DELETE: (id) => `/passenger/${id}`,
 };
 
 export const CSRF_ENDPOINTS = {

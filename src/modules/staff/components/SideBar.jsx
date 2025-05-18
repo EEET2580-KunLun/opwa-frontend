@@ -48,6 +48,13 @@ const SideBar = ({user}) => {
             </Nav.Link>
             <Nav.Link
                 as={Link}
+                to="/admin/passenger"
+                className={`sidebar-link ${activeLink.startsWith('/admin/passenger') ? 'fw-bold' : ''}`}
+            >
+                Passenger Management
+            </Nav.Link>
+            <Nav.Link
+                as={Link}
                 to="/admin/tickets"
                 className={`sidebar-link ${activeLink.startsWith('/admin/tickets') ? 'fw-bold' : ''}`}
             >

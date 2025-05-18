@@ -5,6 +5,7 @@ import { encryptTransform } from 'redux-persist-transform-encrypt';
 import { combineReducers } from 'redux';
 import authReducer from '../../modules/auth/store/authSlice';
 import {apiSlice} from "../config/api/apiSlice.js";
+import { pawaApiSlice } from "../../app/config/api/pawaApiSlice.js";
 import staffReducer from '../../modules/staff/store/staffSlice';
 import lineReducer from '../../modules/line/store/lineSlice';
 import stationReducer from '../../modules/station/store/stationSlice';
@@ -44,6 +45,7 @@ const rootReducer = (state, action) => {
         auth: authReducer,
         [apiSlice.reducerPath]: apiSlice.reducer,
         [ticketApi.reducerPath]: ticketApi.reducer,
+        [pawaApiSlice.reducerPath]: pawaApiSlice.reducer,
         staff: staffReducer,
         line: lineReducer,
         station: stationReducer,
@@ -80,7 +82,8 @@ export const store = configureStore({
         }
     })
         .concat(apiSlice.middleware)
-        .concat(ticketApi.middleware),
+        .concat(ticketApi.middleware)
+        .concat(pawaApiSlice.middleware),
     devTools: true
 });
 

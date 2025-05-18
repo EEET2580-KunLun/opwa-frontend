@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import {Card, Button, Row, Col, InputGroup, Modal, Form} from 'react-bootstrap';
-import {FaUsers, FaSubway, FaTicketAlt, FaChartBar, FaCog, FaCopy, FaEnvelope} from 'react-icons/fa';
+import {FaUsers, FaUserFriends, FaSubway, FaTicketAlt, FaChartBar, FaCog, FaCopy, FaEnvelope} from 'react-icons/fa';
 import {useInviteStaffMutation} from "../../staff/store/staffApiSlice.js";
 import {selectCurrentUser} from "../store/authSlice.js";
 import {useSelector} from "react-redux";
@@ -132,6 +132,38 @@ const AdminDashboard = () => {
                                         </Button>
                                     </Col>
                                 </Row>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+
+                 <Col md={6} lg={4} className="mb-4">
+                    <Card className="h-100 shadow-sm">
+                        <Card.Body className="d-flex flex-column">
+                            <div className="text-center mb-3">
+                                <FaUserFriends size={48} className="text-purple" style={{ color: '#8e44ad' }} />
+                            </div>
+                            <Card.Title className="text-center">Passenger Management</Card.Title>
+                            <Card.Text className="text-muted">
+                                Manage passenger accounts and purchase tickets for passengers.
+                            </Card.Text>
+                            <div className="mt-auto">
+                                <Button
+                                    variant="primary"
+                                    className="w-100 mb-2"
+                                    style={{ backgroundColor: '#8e44ad', borderColor: '#8e44ad' }}
+                                    onClick={() => handleNavigate('/admin/passenger')}
+                                >
+                                    View Passengers
+                                </Button>
+                                <Button
+                                    variant="outline-primary"
+                                    className="w-100"
+                                    style={{ color: '#8e44ad', borderColor: '#8e44ad' }}
+                                    onClick={() => handleNavigate('/admin/passenger/create')}
+                                >
+                                    Register New Passenger
+                                </Button>
                             </div>
                         </Card.Body>
                     </Card>

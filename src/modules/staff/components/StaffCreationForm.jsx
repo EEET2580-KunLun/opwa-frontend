@@ -319,8 +319,6 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
         }
     };
 
-
-
     // Fix the clearImage function
     const clearImage = (type) => {
         // Get the correct preview key name
