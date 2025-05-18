@@ -36,6 +36,7 @@ import {
 } from "../util/validationUtils.js";
 import {useSelector} from "react-redux";
 import {selectCurrentUser} from "../../auth/store/authSlice.js";
+import { convertToSnakeCase } from "../../../shared/utils.js";
 
 const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitialData = null, onSuccess }) => {
     const params = useParams();
@@ -64,6 +65,12 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
     const fileRefs = {
         profilePhoto: useRef(null), frontId: useRef(null), backId: useRef(null)
     };
+
+    const [imagesChanged, setImagesChanged] = useState({
+        profilePhoto: false,
+        frontId: false,
+        backId: false
+    });
 
     // Handler to flip the boolean:
     const handleTogglePassword = () => {
@@ -249,6 +256,18 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
             [`${type.replace('Image', '')}Preview`]: previewURL
         }));
 
+        // Mark this image as changed
+        const imageKey = type === 'profilePhoto' ? 'profilePhoto' : 
+                        type === 'frontIdImage' ? 'frontId' : 
+                        type === 'backIdImage' ? 'backId' : null;
+        
+        if (imageKey) {
+            setImagesChanged(prev => ({
+                ...prev,
+                [imageKey]: true
+            }));
+        }
+
         // If it's a profile photo upload in edit mode, upload it immediately
         if (isEditMode && type === 'profilePhoto' && initialData?.id) {
             try {
@@ -302,7 +321,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
 
 
 
-// Fix the clearImage function
+    // Fix the clearImage function
     const clearImage = (type) => {
         // Get the correct preview key name
         const previewKey = `${type.replace('Image', '')}Preview`;
@@ -314,6 +333,18 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
         setImages(prev => ({
             ...prev, [type]: null, [previewKey]: null
         }));
+
+        // Reset the changed flag for this image
+        const imageKey = type === 'profilePhoto' ? 'profilePhoto' : 
+                        type === 'frontIdImage' ? 'frontId' : 
+                        type === 'backIdImage' ? 'backId' : null;
+        
+        if (imageKey) {
+            setImagesChanged(prev => ({
+                ...prev,
+                [imageKey]: false
+            }));
+        }
 
         if (fileRefs[type.replace('Image', '')] && fileRefs[type.replace('Image', '')].current) {
             fileRefs[type.replace('Image', '')].current.value = '';
@@ -422,57 +453,85 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
 
     const prepareFormData = () => {
         const staffFormData = new FormData();
+        
+        // Create a JSON object for staff data
+        const staffJsonData = {
+            email: formData.email,
+            username: !isEditMode ? formData.username : undefined,  // Only include username for new staff
+            password: formData.password || undefined,  // Convert empty string to undefined
+            firstName: formData.firstName,
+            middleName: formData.middleName || '',
+            lastName: formData.lastName,
+            nationalId: formData.nationalId,
+            role: formData.role,
+            phoneNumber: formData.phone,
+            dateOfBirth: formData.dateOfBirth.split('/').reverse().join('-'),
+            shift: formData.shift,
+            employed: formData.employed,
+            address: {
+                number: formData.addressNumber,
+                street: formData.addressStreet,
+                ward: formData.addressWard,
+                district: formData.addressDistrict,
+                city: formData.addressCity
+            }
+        };
 
-        // Append fields with correct names for the backend
-        staffFormData.append('email', formData.email);
-    
-        // Only include password if provided (always for new users, optional for edits)
-        if (formData.password) {
-            staffFormData.append('password', formData.password);
+        // Remove undefined and empty string fields
+        const removeEmptyValues = (obj) => {
+            Object.keys(obj).forEach(key => {
+                // Check if value is undefined or empty string
+                if (obj[key] === undefined || obj[key] === '') {
+                    delete obj[key];
+                } 
+                // Recursively check nested objects
+                else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    removeEmptyValues(obj[key]);
+                    // Delete empty objects
+                    if (Object.keys(obj[key]).length === 0) {
+                        delete obj[key];
+                    }
+                }
+            });
+            return obj;
+        };
+
+        // Clean the data object
+        const cleanedJsonData = removeEmptyValues({...staffJsonData});
+        
+        // Convert the cleaned JSON object to snake_case
+        const snakeCaseJsonData = convertToSnakeCase(cleanedJsonData);
+
+        // Add JSON data as a blob with the correct content type
+        const staffBlob = new Blob([JSON.stringify(snakeCaseJsonData)], {
+            type: 'application/json'
+        });
+        
+        // Add the JSON part (this is the @RequestBody in your controller)
+        staffFormData.append('request', staffBlob);
+        
+        // Add ONLY the changed image files
+        // For new staff records, all provided images are included
+        if (!isEditMode || imagesChanged.profilePhoto) {
+            if (images.profilePhoto) {
+                staffFormData.append('profilePicture', images.profilePhoto);
+            }
         }
 
-        staffFormData.append('firstName', formData.firstName);
-        staffFormData.append('middleName', formData.middleName || '');
-        staffFormData.append('lastName', formData.lastName);
-        staffFormData.append('nationalId', formData.nationalId);
-        staffFormData.append('role', formData.role);
-        staffFormData.append('phoneNumber', formData.phone);
-        staffFormData.append('dateOfBirth', formData.dateOfBirth);
-        staffFormData.append('shift', formData.shift);
-        staffFormData.append('employed', formData.employed);
-
-        // Add address fields as separate form fields
-        staffFormData.append("address.number", formData.addressNumber);
-        staffFormData.append("address.street", formData.addressStreet);
-        staffFormData.append("address.ward", formData.addressWard);
-        staffFormData.append("address.district", formData.addressDistrict);
-        staffFormData.append("address.city", formData.addressCity);
-
-        // Handle staff ID and username fields based on mode
-        if (isEditMode && initialData?.id) {
-            // For edit mode, include ID but NOT username
-            staffFormData.append('id', initialData.id);
-        } else {
-            // For create mode, include username
-            staffFormData.append('username', formData.username);
+        if (!isEditMode || imagesChanged.frontId) {
+            if (images.frontIdImage) {
+                staffFormData.append('frontIdPicture', images.frontIdImage);
+            }
         }
 
-        // Append files only if they've been changed
-        if (images.profilePhoto) {
-            staffFormData.append('profilePicture', images.profilePhoto);
-        }
-
-        if (images.frontIdImage) {
-            staffFormData.append('frontIdPicture', images.frontIdImage);
-        }
-
-        if (images.backIdImage) {
-            staffFormData.append('backIdPicture', images.backIdImage);
+        if (!isEditMode || imagesChanged.backId) {
+            if (images.backIdImage) {
+                staffFormData.append('backIdPicture', images.backIdImage);
+            }
         }
 
         return staffFormData;
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -886,6 +945,22 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                             {errors.frontIdImage}
                         </Typography>)}
                     </Box>
+                    {imagesChanged.frontId && isEditMode && (
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                top: -8,
+                                right: 8, // Slightly offset from the close button
+                                bgcolor: '#4caf50',
+                                color: 'white',
+                                borderRadius: '4px',
+                                padding: '2px 4px',
+                                fontSize: '0.7rem'
+                            }}
+                        >
+                            new
+                        </Box>
+                    )}
                 </Grid>
 
                 <Grid item xs={6}>
@@ -930,6 +1005,22 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                             {errors.backIdImage}
                         </Typography>)}
                     </Box>
+                    {imagesChanged.backId && isEditMode && (
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                top: -8,
+                                right: 8,
+                                bgcolor: '#4caf50',
+                                color: 'white',
+                                borderRadius: '4px',
+                                padding: '2px 4px',
+                                fontSize: '0.7rem'
+                            }}
+                        >
+                            new
+                        </Box>
+                    )}
                 </Grid>
 
                 {/* Role selection */}
