@@ -34,7 +34,7 @@ export const STAFF_ENDPOINTS = {
     UPLOAD_ID: (id) => `/staffs/${id}/national-id`,
     DELETE_ID: (id) => `/staffs/${id}/national-id`,
     TOGGLE_EMPLOYMENT: (id) => `/staffs/${id}/employment`,
-    INVITE_STAFF: '/v1/staffs/invite',
+    INVITE_STAFF: '/staffs/invite',
 };
 
 // Line endpoints

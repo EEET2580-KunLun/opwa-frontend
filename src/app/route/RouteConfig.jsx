@@ -9,6 +9,7 @@ import Page401 from "../../shared/errorPage/401.jsx";
 import MapComponent from "../../modules/map/MapComponent.jsx";
 import OAuth2CallbackHandling from "../../modules/auth/component/OAuth2CallbackHandling.jsx";
 import StatisticsRoutes from '../../modules/statistics/routes/StatisticsRoutes.jsx';
+import StaffRegisterForm from "../../modules/staff/components/StaffRegisterForm.jsx";
 const WelcomeUI = lazy(() => import('../../modules/auth/component/welcoming/WelcomeUI.jsx'));
 const About = lazy(() => import('../../modules/auth/component/welcoming/About.jsx'));
 const Login = lazy(() => import('../../modules/auth/component/welcoming/Login.jsx'));
@@ -46,6 +47,7 @@ const RouteConfig = () => {
                 <Route path="/404" element={<Page404 />} />
                 <Route path="/500" element={<Page500 />} />
                 <Route path="/OAuth2/callback" element={<OAuth2CallbackHandling />} />
+                <Route path="/invite/register/:token" element={<StaffRegisterForm />} />
                 {/*<Route path="/unauthorized" element={<Unauthorized />} />*/}
 
                 {/* Admin Routes */}

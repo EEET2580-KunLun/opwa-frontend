@@ -65,6 +65,9 @@ export const useLogin = () => {
                     case "ADMIN":
                         navigate("/admin/dashboard");
                         break;
+                    case "MASTER_ADMIN":
+                        navigate("/admin/dashboard");
+                        break;
                     case "OPERATOR":
                         navigate("/operator/dashboard");
                         break;

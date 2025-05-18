@@ -1,13 +1,49 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button, Row, Col } from 'react-bootstrap';
-import { FaUsers, FaSubway, FaTicketAlt, FaChartBar, FaCog } from 'react-icons/fa';
+import {Card, Button, Row, Col, InputGroup, Modal, Form} from 'react-bootstrap';
+import {FaUsers, FaSubway, FaTicketAlt, FaChartBar, FaCog, FaCopy, FaEnvelope} from 'react-icons/fa';
+import {useInviteStaffMutation} from "../../staff/store/staffApiSlice.js";
+import {selectCurrentUser} from "../store/authSlice.js";
+import {useSelector} from "react-redux";
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const [inviteStaff] = useInviteStaffMutation();
+    const [showModal, setShowModal] = useState(false);
+    const [inviteLink, setInviteLink] = useState('');
+    const user = useSelector(selectCurrentUser)
 
     const handleNavigate = (path) => {
         navigate(path);
+    };
+
+    const handleInvite = async () => {
+        try {
+            const response = await inviteStaff().unwrap();
+            // Assuming the API returns a token in the response
+            const token = response.data?.invite_token;
+            const link = `${window.location.origin}/invite/register/${token}`;
+            setInviteLink(link);
+            setShowModal(true);
+        } catch (error) {
+            console.error('Failed to generate invite link:', error);
+            // You might want to add error handling here (toast notification, etc.)
+        }
+    };
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(inviteLink)
+            .then(() => {
+                // Optional: show a copied notification
+                console.log('Link copied to clipboard');
+            })
+            .catch(err => {
+                console.error('Failed to copy link:', err);
+            });
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
     };
 
     return (
@@ -142,6 +178,57 @@ const AdminDashboard = () => {
                         </Card.Body>
                     </Card>
                 </Col>
+
+                {user?.role === 'MASTER_ADMIN' && (
+                    <Col md={6} lg={4} className="mb-4">
+                        <Card className="h-100 shadow-sm">
+                            <Card.Body className="d-flex flex-column">
+                                <div className="text-center mb-3">
+                                    <FaEnvelope size={48} className="text-secondary" />
+                                </div>
+                                <Card.Title className="text-center">Invite Staff</Card.Title>
+                                <Card.Text className="text-muted">
+                                    Invite new staffs with link.
+                                </Card.Text>
+                                <Button
+                                    variant={"secondary"}
+                                    className="mt-auto"
+                                    onClick={() => handleInvite()}
+                                >
+                                    Invite
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                )}
+
+                {/* Invite Modal */}
+                <Modal show={showModal} onHide={handleCloseModal}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Staff Invitation Link</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <p>Share this link with the staff member you want to invite:</p>
+                        <InputGroup className="mb-3">
+                            <Form.Control
+                                value={inviteLink}
+                                readOnly
+                            />
+                            <Button
+                                variant="outline-secondary"
+                                onClick={handleCopyLink}
+                            >
+                                <FaCopy /> Copy
+                            </Button>
+                        </InputGroup>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handleCloseModal}>
+                            Close
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+                {/*
 {/* 
                 <Col md={6} lg={4} className="mb-4">
                     <Card className="h-100 shadow-sm">
