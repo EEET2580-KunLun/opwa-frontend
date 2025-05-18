@@ -51,6 +51,7 @@ export const LINE_ENDPOINTS = {
     RESUME: (id) => `/lines/${id}/resume`,
     FIND_TRIPS: '/lines/trips/search',
     FIND_UPCOMING_TRIPS: '/lines/trips/upcoming',
+    CHECK_NAME: '/lines/check-name',
 };
 
 // Station endpoints

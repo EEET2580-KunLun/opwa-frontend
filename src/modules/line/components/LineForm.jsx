@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -30,6 +30,11 @@ import {
     useUpdateLineMutation,
     useGetStationsQuery
 } from '../store/lineApiSlice';
+import {
+    nameValidationRules,
+    statusValidationRules,
+    frequencyValidationRules,
+    stationsValidationRules } from '../util/validationUtils'
 
 // Draggable station item for reordering
 const DraggableStationItem = ({ station, index, moveStation, onRemove, onTimeChange }) => {
@@ -84,6 +89,7 @@ const LineForm = () => {
     const { id } = useParams();
     const isEditing = Boolean(id);
     const navigate = useNavigate();
+    const originalNameRef = useRef("");
 
     const [selectedStations, setSelectedStations] = useState([]);
     const [stationToAdd, setStationToAdd] = useState('');
@@ -92,39 +98,36 @@ const LineForm = () => {
     const {
         register,
         handleSubmit,
-        setValue,
         control,
+        setValue,
+        trigger,
         formState: { errors },
         reset
     } = useForm({
         defaultValues: {
             name: '',
             frequency: 10,
-            status: 'ACTIVE'
-        }
+            status: 'ACTIVE',
+            stations: []
+        },
+        mode: 'onBlur',
     });
 
-    // Get stations for dropdown
-    const { data: stations, isLoading: stationsLoading } = useGetStationsQuery();
-
-    // Get line data if editing
-    const { data: line, isLoading: lineLoading } = useGetLineByIdQuery(id, {
-        skip: !isEditing
-    });
-
-    // Create/update mutations
-    const [createLine, { isLoading: isCreating }] = useCreateLineMutation();
-    const [updateLine, { isLoading: isUpdating }] = useUpdateLineMutation();
-
-    const isLoading = stationsLoading || lineLoading || isCreating || isUpdating;
+    const { data: stations, isLoading: stationsLoading } = useGetStationsQuery()
+    const { data: line, isLoading: lineLoading } = useGetLineByIdQuery(id, { skip: !isEditing })
+    const [createLine, { isLoading: isCreating }] = useCreateLineMutation()
+    const [updateLine, { isLoading: isUpdating }] = useUpdateLineMutation()
+    const isLoading = stationsLoading || lineLoading || isCreating || isUpdating
 
     // Load line data into form when editing
     useEffect(() => {
         if (isEditing && line) {
+            originalNameRef.current = line.name
             reset({
                 name: line.name,
                 frequency: line.frequency,
-                status: line.status
+                status: line.status,
+                stations: [] // will be overwritten by selectedStations effect
             });
 
             // Convert milliseconds to seconds for TimePicker
@@ -137,25 +140,32 @@ const LineForm = () => {
                 console.log("Time in HH:MM:", new Date(seconds * 1000).toLocaleTimeString());
             }
 
-            // Set selected stations
-            if (line.stations && line.stations.length > 0) {
-                // Sort stations by sequence
-                const sortedStations = [...line.stations].sort((a, b) => a.sequence - b.sequence);
-
+            if (line.stations) {
+                const sorted = [...line.stations].sort((a, b) => a.sequence - b.sequence)
                 setSelectedStations(
-                    sortedStations.map(station => ({
-                        station_id: station.station_id,
-                        station_name: station.station_name,
-                        sequence: station.sequence,
-                        time_from_previous_station: station.sequence === 0 ? 0 :
-                            typeof station.time_from_previous_station === 'string' && station.time_from_previous_station.startsWith('PT') ?
-                                parseInt(station.time_from_previous_station.replace(/[^0-9]/g, '')) :
-                                parseInt(station.time_from_previous_station) || 5
+                    sorted.map((s, idx) => ({
+                        station_id: s.station_id,
+                        station_name: s.station_name,
+                        sequence: idx,
+                        time_from_previous_station:
+                            idx === 0
+                                ? 0
+                                : typeof s.time_from_previous_station === 'string' &&
+                                s.time_from_previous_station.startsWith('PT')
+                                    ? parseInt(s.time_from_previous_station.replace(/\D/g, ''), 10)
+                                    : parseInt(s.time_from_previous_station, 10) || 5
                     }))
-                );
+                )
             }
         }
     }, [isEditing, line, reset]);
+
+    useEffect(() => {
+        // Tell RHF that the hidden "stations" field is now our latest array
+        setValue('stations', selectedStations, { shouldValidate: true })
+        // Immediately re-run its validation rule
+        trigger('stations')
+    }, [selectedStations, setValue, trigger])
 
     const handleTimeChange = (seconds) => {
         setTimeValue(seconds);
@@ -321,13 +331,11 @@ const LineForm = () => {
                                     type="text"
                                     placeholder="e.g., Line 1"
                                     isInvalid={!!errors.name}
-                                    {...register('name', { required: 'Line name is required' })}
+                                    {...register('name', nameValidationRules(originalNameRef.current))}
                                 />
-                                {errors.name && (
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.name.message}
-                                    </Form.Control.Feedback>
-                                )}
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.name?.message}
+                                </Form.Control.Feedback>
                             </Form.Group>
                         </Col>
                         <Col md={6}>
@@ -335,7 +343,7 @@ const LineForm = () => {
                                 <Form.Label>Status</Form.Label>
                                 <Form.Select
                                     isInvalid={!!errors.status}
-                                    {...register('status', { required: 'Status is required' })}
+                                    {...register('status', statusValidationRules)}
                                 >
                                     <option value="ACTIVE">Active</option>
                                     <option value="MAINTENANCE">Maintenance</option>
@@ -374,15 +382,10 @@ const LineForm = () => {
                                 <Form.Label>Train Frequency (minutes)</Form.Label>
                                 <Form.Control
                                     type="number"
-                                    min="1"
-                                    max="60"
+                                    isValid={!!errors.frequency}
                                     placeholder="e.g., 10"
                                     isInvalid={!!errors.frequency}
-                                    {...register('frequency', {
-                                        required: 'Frequency is required',
-                                        min: { value: 1, message: 'Frequency must be at least 1 minute' },
-                                        max: { value: 60, message: 'Frequency must not exceed 60 minutes' }
-                                    })}
+                                    {...register('frequency', frequencyValidationRules)}
                                 />
                                 {errors.frequency && (
                                     <Form.Control.Feedback type="invalid">
@@ -393,12 +396,26 @@ const LineForm = () => {
                         </Col>
                     </Row>
 
+                    {/* hidden controller for stations validation */}
+                    <Controller
+                        name="stations"
+                        control={control}
+                        rules={stationsValidationRules}
+                        render={() => null}
+                    />
+
                     <Card className="mb-4">
                         <Card.Header>
                             <h5>Stations</h5>
                             <div className="text-muted">Drag stations to reorder</div>
                         </Card.Header>
                         <Card.Body>
+                            {errors.stations && (
+                                <div className="text-danger mb-2">
+                                    {errors.stations.message}
+                                </div>
+                            )}
+
                             <Row className="mb-3">
                                 <Col>
                                     <InputGroup>
@@ -459,7 +476,6 @@ const LineForm = () => {
                                 <div className="text-center py-4 text-muted">
                                     <FaExclamationTriangle className="mb-2" size={24} />
                                     <p>No stations added to this line yet.</p>
-                                    <p>A metro line must have at least two stations.</p>
                                 </div>
                             )}
                         </Card.Body>
@@ -473,28 +489,11 @@ const LineForm = () => {
                         >
                             <FaTimes className="me-1" /> Cancel
                         </Button>
-                        <Button
-                            variant="primary"
-                            type="submit"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Spinner
-                                        as="span"
-                                        animation="border"
-                                        size="sm"
-                                        role="status"
-                                        aria-hidden="true"
-                                        className="me-2"
-                                    />
-                                    {isEditing ? 'Updating...' : 'Creating...'}
-                                </>
-                            ) : (
-                                <>
-                                    <FaSave className="me-1" /> {isEditing ? 'Update' : 'Create'} Line
-                                </>
-                            )}
+                        <Button variant="primary" type="submit" disabled={isLoading}>
+                            {isLoading
+                                ? <Spinner as="span" animation="border" size="sm" />
+                                : <FaSave />}
+                            {isEditing ? ' Update' : ' Create'}
                         </Button>
                     </div>
                 </Form>
