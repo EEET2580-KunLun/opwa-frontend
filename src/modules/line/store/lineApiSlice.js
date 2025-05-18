@@ -101,13 +101,14 @@ export const lineApiSlice = apiSlice.injectEndpoints({
         }),
 
         // Line Scheduling
-        generateLineSchedule: builder.mutation({
-            query: (id) => ({
+       generateLineSchedule: builder.mutation({
+            query: ({ id, scheduleData }) => ({
                 url: LINE_ENDPOINTS.GENERATE_SCHEDULE(id),
                 method: 'POST',
+                body: scheduleData || {}  // Add empty object as default
             }),
             transformResponse: (response) => response.data,
-            invalidatesTags: (result, error, id) => [{ type: 'Schedule', id }, 'Schedule']
+            invalidatesTags: (result, error, { id }) => [{ type: 'Schedule', id }, 'Schedule']
         }),
 
         getLineSchedule: builder.query({

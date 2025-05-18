@@ -1,4 +1,3 @@
-// src/modules/line/components/LineSchedule.jsx (continued)
 import React, {useEffect, useState} from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -11,7 +10,9 @@ import {
     Row,
     Col,
     Badge,
-    Pagination
+    Pagination,
+    Modal,
+    Form
 } from 'react-bootstrap';
 import {
     FaArrowLeft,
@@ -19,8 +20,11 @@ import {
     FaClock,
     FaExclamationTriangle,
     FaInfoCircle,
-    FaSyncAlt
+    FaSyncAlt,
+    FaCalendarAlt
 } from 'react-icons/fa';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import {
     useGetLineByIdQuery,
     useGetLineScheduleQuery,
@@ -33,15 +37,18 @@ const LineSchedule = () => {
     const navigate = useNavigate();
     const [page, setPage] = useState(0);
     const [pageSize] = useState(10);
+    
+    // Add state for modal and date selection
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
+    const [departureTime, setDepartureTime] = useState(new Date());
 
-    // Fetch line details
+    // Existing query hooks
     const {
         data: line,
         isLoading: lineLoading,
         error: lineError
     } = useGetLineByIdQuery(id);
 
-    // Fetch schedule overview (first/last two trips)
     const {
         data: scheduleOverview,
         isLoading: overviewLoading,
@@ -49,7 +56,6 @@ const LineSchedule = () => {
         refetch: refetchOverview
     } = useGetLineScheduleQuery(id);
 
-    // Fetch paginated trips
     const {
         data: trips,
         isLoading: tripsLoading,
@@ -59,7 +65,6 @@ const LineSchedule = () => {
         { id, page, size: pageSize },
     );
 
-    // Generate schedule mutation
     const [
         generateSchedule,
         { isLoading: isGenerating }
@@ -69,10 +74,27 @@ const LineSchedule = () => {
         navigate('/operator/lines');
     };
 
+    // Modified to open the modal instead of generating immediately
+    const handleOpenScheduleModal = () => {
+        setShowScheduleModal(true);
+    };
+
+    const handleCloseScheduleModal = () => {
+        setShowScheduleModal(false);
+    };
+
     const handleGenerateSchedule = async () => {
         try {
-            await generateSchedule(id).unwrap();
+            // Convert the date to Unix timestamp (milliseconds since epoch)
+            const unixTimestamp = Math.floor(departureTime.getTime());
+            
+            const scheduleData = {
+                departure_time: unixTimestamp
+            };
+
+            await generateSchedule({ id, scheduleData }).unwrap();
             toast.success('Schedule generated successfully');
+            handleCloseScheduleModal();
             refetchOverview();
             refetchTrips();
         } catch (error) {
@@ -223,8 +245,62 @@ const LineSchedule = () => {
         );
     }
 
+    const scheduleModal = (
+        <Modal show={showScheduleModal} onHide={handleCloseScheduleModal}>
+            <Modal.Header closeButton>
+                <Modal.Title>Generate Schedule</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <Form.Group className="mb-3">
+                    <Form.Label>Departure Start Time (Optional)</Form.Label>
+                    <div className="input-group">
+                        <span className="input-group-text">
+                            <FaCalendarAlt />
+                        </span>
+                        <DatePicker
+                            selected={departureTime}
+                            onChange={(date) => setDepartureTime(date)}
+                            showTimeSelect
+                            timeFormat="HH:mm"
+                            timeIntervals={15}
+                            timeCaption="Time"
+                            dateFormat="MMMM d, yyyy h:mm aa"
+                            className="form-control"
+                        />
+                    </div>
+                    <Form.Text className="text-muted">
+                        Choose when the schedule should begin. If not specified, the system will use the line's default first departure time.
+                    </Form.Text>
+                </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleCloseScheduleModal}>
+                    Cancel
+                </Button>
+                <Button 
+                    variant="primary" 
+                    onClick={handleGenerateSchedule}
+                    disabled={isGenerating}
+                >
+                    {isGenerating ? (
+                        <>
+                            <Spinner animation="border" size="sm" className="me-2" />
+                            Generating...
+                        </>
+                    ) : (
+                        <>
+                            <FaCalendarPlus className="me-2" /> Generate Schedule
+                        </>
+                    )}
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+
     return (
         <>
+            {scheduleModal}
+            
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <Button variant="outline-secondary" onClick={handleGoBack}>
                     <FaArrowLeft className="me-2" /> Back to Lines
@@ -234,7 +310,7 @@ const LineSchedule = () => {
                 </h3>
                 <Button
                     variant="primary"
-                    onClick={handleGenerateSchedule}
+                    onClick={handleOpenScheduleModal}
                     disabled={isGenerating}
                 >
                     {isGenerating ? (
@@ -470,7 +546,7 @@ const LineSchedule = () => {
                             </p>
                             <Button
                                 variant="primary"
-                                onClick={handleGenerateSchedule}
+                                onClick={handleOpenScheduleModal}
                                 disabled={isGenerating}
                             >
                                 {isGenerating ? (
