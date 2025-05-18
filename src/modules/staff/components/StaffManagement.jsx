@@ -84,6 +84,9 @@ const StaffManagement = () => {
                 if (!value && value !== false) continue; // Skip empty filters
                 
                 switch (key) {
+                    case 'employed':
+                        if (staff.employed !== value) return false;
+                        break;
                     case 'role':
                         if (staff.role !== value) return false;
                         break;
@@ -196,7 +199,7 @@ const StaffManagement = () => {
                                     className={`text-decoration-none px-0 pb-2 ${activeTab === 'active' ? 'text-primary fw-bold border-bottom border-primary border-3' : 'text-secondary'}`}
                                     onClick={() => handleTabChange('active')}
                                 >
-                                    Employed Staff <span className="badge bg-primary ms-1">{activeStaffCount}</span>
+                                    Staffs <span className="badge bg-primary ms-1">{activeStaffCount}</span>
                                 </Button>
                             </div>
                             {/* <div>

@@ -23,6 +23,7 @@ import {validateEmail, validatePassword, validateName, validateNationalID, valid
 import {CSRF_ENDPOINTS} from "../../../app/config/Api.js";
 import {setXSRFToken} from "../../auth/store/authSlice.js";
 import {toast} from "sonner";
+import {convertToSnakeCase} from "../../../shared/utils.js";
 
 const StaffCreationForm = () => {
     const dispatch = useDispatch();
@@ -299,48 +300,84 @@ const StaffCreationForm = () => {
 
         const staffFormData = new FormData();
 
-        // Append fields with correct names for the backend
-        staffFormData.append('email', formData.email);
-        staffFormData.append('username', formData.username);
-        staffFormData.append('password', formData.password);
-        staffFormData.append('firstName', formData.firstName);
-        staffFormData.append('middleName', formData.middleName || '');
-        staffFormData.append('lastName', formData.lastName);
-        staffFormData.append('nationalId', formData.nationalId);
-        staffFormData.append('role', formData.role);
-        staffFormData.append('phoneNumber', formData.phone);
-        staffFormData.append('dateOfBirth', formData.dateOfBirth);
-        staffFormData.append('shift', formData.shift);
-        staffFormData.append('employed', formData.employed);
+        // Create a JSON object for staff data
+        const staffJsonData = {
+            email: formData.email,
+            username: formData.username,  // Only include username for new staff
+            password: formData.password,  // Convert empty string to undefined
+            firstName: formData.firstName,
+            middleName: formData.middleName || '',
+            lastName: formData.lastName,
+            nationalId: formData.nationalId,
+            role: formData.role,
+            phoneNumber: formData.phone,
+            dateOfBirth: formData.dateOfBirth.split('/').reverse().join('-'),
+            shift: formData.shift,
+            employed: formData.employed,
+            address: {
+                number: formData.addressNumber,
+                street: formData.addressStreet,
+                ward: formData.addressWard,
+                district: formData.addressDistrict,
+                city: formData.addressCity
+            }
+        };
 
-        // Add address fields as separate form fields
-        staffFormData.append("address.number", formData.addressNumber);
-        staffFormData.append("address.street", formData.addressStreet);
-        staffFormData.append("address.ward", formData.addressWard);
-        staffFormData.append("address.district", formData.addressDistrict);
-        staffFormData.append("address.city", formData.addressCity);
+        // Remove undefined and empty string fields
+        const removeEmptyValues = (obj) => {
+            Object.keys(obj).forEach(key => {
+                // Check if value is undefined or empty string
+                if (obj[key] === undefined || obj[key] === '') {
+                    delete obj[key];
+                }
+                // Recursively check nested objects
+                else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    removeEmptyValues(obj[key]);
+                    // Delete empty objects
+                    if (Object.keys(obj[key]).length === 0) {
+                        delete obj[key];
+                    }
+                }
+            });
+            return obj;
+        };
 
-        // Append files with UPDATED field names
+        // Clean the data object
+        const cleanedJsonData = removeEmptyValues({...staffJsonData});
+
+        // Convert the cleaned JSON object to snake_case
+        const snakeCaseJsonData = convertToSnakeCase(cleanedJsonData);
+
+        // Add JSON data as a blob with the correct content type
+        const staffBlob = new Blob([JSON.stringify(snakeCaseJsonData)], {
+            type: 'application/json'
+        });
+
+        // Add the JSON part (this is the @RequestBody in your controller)
+        staffFormData.append('request', staffBlob);
+
+        // Add ONLY the changed image files
+        // For new staff records, all provided images are included
+
         if (profilePhoto) {
             staffFormData.append('profilePicture', profilePhoto);
         }
+
+
 
         if (frontIdImage) {
             staffFormData.append('frontIdPicture', frontIdImage);
         }
 
+
+
         if (backIdImage) {
             staffFormData.append('backIdPicture', backIdImage);
         }
 
-        // Debug: log FormData contents
-        console.log('FormData contents:');
-        for (let [key, value] of staffFormData.entries()) {
-            console.log(key, value);
-        }
 
         try {
-            await createStaff(staffFormData).unwrap();
+            const response = await createStaff(staffFormData).unwrap();
 
             setNotification({
                 open: true,
