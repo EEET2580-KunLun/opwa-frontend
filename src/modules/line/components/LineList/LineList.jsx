@@ -2,8 +2,8 @@ import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {useDispatch} from 'react-redux';
-import {setLines} from "../store/lineSlice.js";
-import {formatTime} from "../../../shared/utils.js";
+import {setLines} from "../../store/lineSlice.js";
+import {formatTime} from "../../../../shared/utils.js";
 import {
     Table,
     Button,
@@ -29,11 +29,12 @@ import {
     FaMapMarkedAlt,
     FaSyncAlt
 } from 'react-icons/fa';
-import { useGetLinesQuery, useDeleteLineMutation, useResumeLineMutation } from '../store/lineApiSlice.js';
-import DeleteConfirmModal from '../../../shared/components/DeleteConfirmModal';
-import MapComponent from "../../map/MapComponent.jsx";
-import SortableHeader from '../../../shared/components/SortableHeader.jsx';
-import SearchBar from '../../../shared/components/SearchBar.jsx';
+import { useGetLinesQuery, useDeleteLineMutation, useResumeLineMutation } from '../../store/lineApiSlice.js';
+import DeleteConfirmModal from '../../../../shared/components/DeleteConfirmModal.jsx';
+import MapComponent from "../../../map/MapComponent.jsx";
+import SortableHeader from '../../../../shared/components/SortableHeader.jsx';
+import SearchBar from '../../../../shared/components/SearchBar.jsx';
+import {StatusFilter} from "./StatusFilter.jsx";
 
 const LineList = () => {
     const navigate = useNavigate();
@@ -50,7 +51,8 @@ const LineList = () => {
         size: 10,
         sortBy: 'name',
         direction: 'ASC',
-        searchTerm: ''
+        searchTerm: '',
+        status: "ACTIVE"
     });
     
     // Client-side search for when backend doesn't support it
@@ -220,6 +222,14 @@ const LineList = () => {
         );
     }
 
+    const handleStatusChange = (status) => {
+        setQueryParams(prev => ({
+            ...prev,
+            page: 0, // Reset to first page when changing filters
+            status: status
+        }));
+    };
+
     if (isError) {
         return (
             <Card className="border-danger mb-4">
@@ -264,14 +274,21 @@ const LineList = () => {
                     </div>
                 </Card.Header>
                 <Card.Body>
-                    <SearchBar onSearch={handleSearch}
-                        placeholder="Search lines by name..." 
-                    />
-                    
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <StatusFilter
+                            currentStatus={queryParams.status}
+                            onStatusChange={handleStatusChange}
+                        />
+                        <SearchBar
+                            onSearch={handleSearch}
+                            placeholder="Search lines by name..."
+                        />
+                    </div>
+
                     {isSearchActive && (
                         <Alert variant="info" className="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                Searching for "{clientSearchTerm}" - 
+                                Searching for "{clientSearchTerm}" -
                                 Found {filteredLines.length} of {lines.length} lines
                             </div>
                             <Button 

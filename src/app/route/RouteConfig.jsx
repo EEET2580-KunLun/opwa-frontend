@@ -19,7 +19,7 @@ const StaffProfile = lazy(() => import('../../modules/staff/components/StaffProf
 const AdminDashboard = lazy(() => import('../../modules/auth/testing/AdminDashboard.jsx'));
 const OperatorDashboard = lazy(() => import('../../modules/auth/testing/OperatorDashboard.jsx'));
 
-const LineList = lazy(() => import('../../modules/line/components/LineList.jsx'));
+const LineList = lazy(() => import('../../modules/line/components/LineList/LineList.jsx'));
 const LineForm = lazy(() => import('../../modules/line/components/LineForm.jsx'));
 const LineSchedule = lazy(() => import('../../modules/line/components/LineSchedule.jsx'));
 const LineSuspend = lazy(() => import('../../modules/line/components/LineSuspend.jsx'));

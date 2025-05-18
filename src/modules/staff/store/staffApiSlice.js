@@ -11,6 +11,7 @@ export const staffApiSlice = apiSlice.injectEndpoints({
                     size = 10,
                     sortBy = 'firstName',
                     direction = 'ASC',
+                    active = null,
                     employed = null,
                     searchTerm = ''
                 } = params;
@@ -25,6 +26,10 @@ export const staffApiSlice = apiSlice.injectEndpoints({
                 // Only add employed filter if it's specified
                 if (employed !== null) {
                     queryParams.employed = employed;
+                }
+
+                if (active !== null) {
+                    queryParams.active = active;
                 }
 
                 // Add search term if provided

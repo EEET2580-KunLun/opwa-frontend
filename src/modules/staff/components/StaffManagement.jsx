@@ -20,6 +20,7 @@ const StaffManagement = () => {
         size: 10,
         sortBy: 'firstName',
         direction: 'ASC',
+        active: true,
         employed: true
     });
     
@@ -85,7 +86,9 @@ const StaffManagement = () => {
                 
                 switch (key) {
                     case 'employed':
-                        if (staff.employed !== value) return false;
+                        if (staff.employed !== value) {
+                            return false;
+                        }
                         break;
                     case 'role':
                         if (staff.role !== value) return false;
@@ -117,8 +120,8 @@ const StaffManagement = () => {
         
     // Active and inactive counts - we should get this from a separate API call ideally
     // For now, we'll just use the total_elements when the employed filter is applied
-    const activeStaffCount = queryParams.employed === true ? totalElements : 0;
-    const inactiveStaffCount = queryParams.employed === false ? totalElements : 0;
+    const activeStaffCount = queryParams.active === true ? totalElements : 0;
+    const inactiveStaffCount = queryParams.active === false ? totalElements : 0;
     
     // Update staff in Redux store
     useEffect(() => {
@@ -134,7 +137,7 @@ const StaffManagement = () => {
         setClientFilters({});
         setQueryParams(prev => ({
             ...prev,
-            employed: tab === 'active',
+            active: tab === 'active',
             page: 0 // Reset to first page
         }));
     };
@@ -199,10 +202,10 @@ const StaffManagement = () => {
                                     className={`text-decoration-none px-0 pb-2 ${activeTab === 'active' ? 'text-primary fw-bold border-bottom border-primary border-3' : 'text-secondary'}`}
                                     onClick={() => handleTabChange('active')}
                                 >
-                                    Staffs <span className="badge bg-primary ms-1">{activeStaffCount}</span>
+                                    All Staffs <span className="badge bg-primary ms-1">{activeStaffCount}</span>
                                 </Button>
                             </div>
-                            {/* <div>
+                             <div>
                                 <Button
                                     variant="link"
                                     className={`text-decoration-none px-0 pb-2 ${activeTab === 'inactive' ? 'text-primary fw-bold border-bottom border-primary border-3' : 'text-secondary'}`}
@@ -211,7 +214,7 @@ const StaffManagement = () => {
                                     Unemployed Staff <span
                                     className="badge bg-secondary ms-1">{inactiveStaffCount}</span>
                                 </Button>
-                            </div> */}
+                            </div>
                         </div>
                      <SearchBar 
                         onSearch={handleSearch}

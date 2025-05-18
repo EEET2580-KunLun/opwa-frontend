@@ -11,7 +11,8 @@ export const lineApiSlice = apiSlice.injectEndpoints({
                     size = 10,
                     sortBy = 'name',
                     direction = 'ASC',
-                    searchTerm = ''
+                    searchTerm = '',
+                    status = ''
                 } = params;
 
                 const queryParams = {
@@ -24,6 +25,9 @@ export const lineApiSlice = apiSlice.injectEndpoints({
                 // Add search term if provided
                 if (searchTerm) {
                     queryParams.search = searchTerm;
+                }
+                if (status) {
+                    queryParams.status = status
                 }
 
                 return {
