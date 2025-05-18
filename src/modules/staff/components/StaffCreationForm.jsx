@@ -34,6 +34,8 @@ import {
     validateDOB,
     validateUsername
 } from "../util/validationUtils.js";
+import {useSelector} from "react-redux";
+import {selectCurrentUser} from "../../auth/store/authSlice.js";
 
 const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitialData = null, onSuccess }) => {
     const params = useParams();
@@ -43,11 +45,12 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
     const [avatarChanged, setAvatarChanged] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const currentUser =  useSelector(selectCurrentUser)
 
 
     // Determine if we're in edit mode from either props or URL
     const isEditMode = propIsEditMode || !!params.id || location.state?.isEditMode;
-    const editorRole = location.state?.editorRole
+    const editorRole =  currentUser.role;
 
     // Get initialData from props or location state
     const routeInitialData = location.state?.initialData;
@@ -411,6 +414,8 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
             }
         }
 
+        console.log(newErrors)
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -472,6 +477,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
         e.preventDefault();
 
         if (!validateForm()) {
+            console.log("validate failed")
             setNotification({
                 open: true, message: "Please fix the error at the field(s) marked with red", severity: "error"
             });
@@ -809,13 +815,9 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         onChange={handleInputChange}
                         onBlur={handleBlur}
                         error={!!errors.username}
-                        helperText={isEditMode ? "Username cannot be changed" : errors.username}
+                        helperText={errors.username}
                         placeholder="Enter username"
                         InputLabelProps={{shrink: true}}
-                        disabled={isEditMode}
-                        InputProps={{
-                            readOnly: isEditMode,
-                        }}
                         sx={{
                             "& .Mui-disabled": {
                                 opacity: 0.7,
@@ -948,7 +950,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                             <MenuItem value="OPERATOR">Operator</MenuItem>
                             <MenuItem value="TICKET_AGENT">Ticket Agent</MenuItem>
                         </Select>
-                        <FormHelperText>{errors.shift || (!isAdmin ? "Only Admins can change role" : "")}</FormHelperText>
+                        <FormHelperText>{errors.shift}</FormHelperText>
                     </FormControl>
                 </Grid>
 
@@ -1079,7 +1081,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                             <MenuItem value="EVENING">Evening: 02:00 PM – 10:00 PM</MenuItem>
                             <MenuItem value="NIGHT">Night: 10:00 PM – 06:00 AM</MenuItem>
                         </Select>
-                        <FormHelperText>{errors.shift || (!isAdmin ? "Only Admins can change shift" : "")}</FormHelperText>
+                        <FormHelperText>{errors.shift}</FormHelperText>
                     </FormControl>
                 </Grid>
 
@@ -1117,7 +1119,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                                 </Box>
                             }
                         />
-                        <FormHelperText>{errors.shift || (!isAdmin ? "Only Admins can change status" : "")}</FormHelperText>
+                        <FormHelperText>{errors.shift}</FormHelperText>
                     </FormControl>
                 </Grid>
 
