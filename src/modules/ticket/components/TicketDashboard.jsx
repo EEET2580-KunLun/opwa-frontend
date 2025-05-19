@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Tabs, Tab, Box } from '@mui/material';
 import GuestPurchase from './GuestPurchase';
-import PassengerPurchase from './PassengerPurchase';
+import PassengerManagement from "../../passenger/components/PassengerManagement.jsx";
+import PassengerPurchase from "./PassengerPurchase.jsx";
 
 
 export default function TicketDashboard() {
