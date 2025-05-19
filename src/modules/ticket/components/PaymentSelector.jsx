@@ -4,13 +4,26 @@ import {
     ToggleButton,
     Box,
     Typography,
-    TextField
+    TextField,
+    InputAdornment,
+    CircularProgress
 } from '@mui/material';
 import { PAYMENT_METHODS } from '../utils/constants';
 
-export default function PaymentSelector({ method, onSelect, balance, cashReceived = 0, onCashChange, change, warning }) {
+export default function PaymentSelector({ 
+    method, 
+    onSelect, 
+    balance, 
+    cashReceived, 
+    onCashChange, 
+    change, 
+    warning,
+    walletLoading = false 
+}) {
+    // Check if using e-wallet payment
+    const isEwalletPayment = method === PAYMENT_METHODS.EWALLET;
+    
     return (
-
         <Box sx={{ mt: 3 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
                 Payment Methods
@@ -45,20 +58,31 @@ export default function PaymentSelector({ method, onSelect, balance, cashReceive
                 </ToggleButton>
             </ToggleButtonGroup>
 
-            {method === PAYMENT_METHODS.EWALLET ? (
-                <Typography>Balance: {balance.toLocaleString()} VND</Typography>
+            {isEwalletPayment ? (
+                <Box>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                        {walletLoading ? (
+                            <CircularProgress size={14} sx={{ mr: 1 }} />
+                        ) : (
+                            <>Wallet Balance: {balance.toLocaleString()} VND</>
+                        )}
+                    </Typography>
+                </Box>
             ) : (
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box>
                     <TextField
-                        size="small"
-                        type="number"
                         label="Cash Received"
+                        type="number"
                         value={cashReceived}
-                        onChange={e => onCashChange(Number(e.target.value))}
-                        sx={{ flex: 1 }}
+                        onChange={(e) => onCashChange(parseInt(e.target.value) || 0)}
+                        fullWidth
+                        InputProps={{
+                            endAdornment: <InputAdornment position="end">VND</InputAdornment>,
+                        }}
+                        sx={{ mb: 2 }}
                     />
-                    <Typography sx={{ ml: 2 }}>
-                        Change: {Math.max(change, 0).toLocaleString()} VND
+                    <Typography variant="body2">
+                        Change: {change.toLocaleString()} VND
                     </Typography>
                 </Box>
             )}

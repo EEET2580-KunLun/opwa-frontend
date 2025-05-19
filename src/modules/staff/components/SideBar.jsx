@@ -160,7 +160,7 @@ const SideBar = ({ user }) => {
                     {sidebarOpen && (
                         <div className="d-flex align-items-center">
                             <img src={subwayLogo} alt="Metro App" height="50" className="me-2" />
-                            <h5 className="mb-0 fw-bold text-primary">HCMc Metro</h5>
+                            <h5 className="mb-0 fw-bold text-primary">HCMC Metro</h5>
                         </div>
                     )}
                     <Button

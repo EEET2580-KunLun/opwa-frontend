@@ -3,7 +3,6 @@ import { Route } from 'react-router-dom';
 import ProtectedRoute from '../../../app/route/ProtectedRoute.jsx';
 import PassengerManagement from '../components/PassengerManagement.jsx';
 import PassengerForm from '../components/PassengerForm.jsx';
-import PassengerTicketPurchase from '../components/PassengerTicketPurchase.jsx';
 
 const PassengerRoutes = (
     <>
@@ -12,8 +11,7 @@ const PassengerRoutes = (
             <Route path="/admin/passenger" element={<PassengerManagement />} />
             <Route path="/admin/passenger/create" element={<PassengerForm />} />
             <Route path="/admin/passenger/edit/:id" element={<PassengerForm />} />
-            <Route path="/admin/passenger/tickets/:id" element={<PassengerTicketPurchase />} />
-        </Route>
+d        </Route>
     </>
 );
 

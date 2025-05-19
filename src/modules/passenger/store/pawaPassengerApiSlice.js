@@ -51,7 +51,15 @@ export const pawaPassengerApiSlice = pawaApiSlice.injectEndpoints({
                 method: 'DELETE'
             }),
             invalidatesTags: ['Passengers']
-        })
+        }),
+
+        getWalletById: builder.query({  // Changed from mutation to query
+            query: (id) => ({
+                url: PASSENGER_ENDPOINTS.WALLET(id),
+                method: 'GET'
+            }),
+            providesTags: (result, error, id) => [{ type: 'Wallet', id }]
+        }),
     }),
 });
 
@@ -61,4 +69,5 @@ export const {
     useCreatePassengerMutation,
     useUpdatePassengerMutation,
     useDeletePassengerMutation,
+    useGetWalletByIdQuery,
 } = pawaPassengerApiSlice;

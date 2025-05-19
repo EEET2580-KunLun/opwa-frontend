@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
     Typography,
@@ -10,23 +10,26 @@ import {
     Button,
     Card,
     CardContent,
-    Chip
+    Chip,
+    Alert
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import {
     useGetPawaTicketTypesQuery,
     usePurchaseTicketsForPassengerMutation
 } from '../store/pawaTicketApiSlice';
+import { useGetWalletByIdQuery } from '../../passenger/store/pawaPassengerApiSlice';
 import TicketTypeSelector from './TicketTypeSelector';
 import PaymentSelector from './PaymentSelector';
 import PurchaseSummaryDialog from './PurchaseSummaryDialog';
 import { useCart } from '../hooks/useCart';
 import { usePayment } from '../hooks/usePayment';
-import { QrCode, User } from 'lucide-react';
+import { QrCode, User, Wallet } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '../store/ticketSlice';
 import { generateReceipt } from '../utils/receiptGenerator';
 import { validatePassengerId } from '../utils/validationUtils';
+import { PAYMENT_METHODS } from '../utils/constants';
 
 export default function PassengerPurchase() {
     const location = useLocation();
@@ -37,27 +40,88 @@ export default function PassengerPurchase() {
     const currentUser = useSelector(state => state.auth.user);
     const { enqueueSnackbar } = useSnackbar();
     const { items, addItem, removeItem, totalCost } = useCart();
-    const { method, balance, cashReceived, change, warning, isValid: paymentValid, setMethod, setCash } = usePayment(totalCost);
+    
     const [passengerId, setPassengerId] = useState(redirectedPassengerId || '');
     const [email, setEmail] = useState(passengerInfo?.email || '');
     const [summaryOpen, setSummaryOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [walletId, setWalletId] = useState(passengerInfo?.userId || '');
+    
     const idValid = redirectedPassengerId || validatePassengerId(passengerId);
-    const canConfirm = items.length > 0 && idValid && paymentValid;
+    
+    // Skip wallet query if no wallet ID is available
+    const { 
+        data: walletData, 
+        isLoading: isWalletLoading,
+        refetch: refetchWallet
+    } = useGetWalletByIdQuery(walletId, { 
+        skip: !walletId 
+    });
+    
+    const walletBalance = walletData?.balance || 0;
+    
+    // Pass wallet balance to usePayment
+    const { 
+        method, 
+        balance, 
+        cashReceived, 
+        change, 
+        warning, 
+        isValid: paymentValid, 
+        setMethod, 
+        setCash 
+    } = usePayment(totalCost, walletBalance);
+    
+    const hasInsufficientBalance = method === PAYMENT_METHODS.EWALLET && balance < totalCost;
+    
+    useEffect(() => {
+        if (passengerId && idValid) {
+           const userId = passengerInfo?.userId || passengerId;
+            setWalletId(userId);
+        } else {
+            setWalletId('');
+        }
+    }, [passengerId, idValid, passengerInfo]);
+
+    const canConfirm = items.length > 0 && idValid && paymentValid && !hasInsufficientBalance;
 
     const handleConfirm = async () => {
         setIsSubmitting(true);
         try {
+            // If payment method is e-wallet and balance is insufficient, prevent submission
+            if (method === PAYMENT_METHODS.EWALLET && balance < totalCost) {
+                enqueueSnackbar('Insufficient wallet balance', { variant: 'error' });
+                setIsSubmitting(false);
+                return;
+            }
+            
             const typeKeys = items.map(i => i.typeKey);
-            const stationCount = items.map(i => i.typeKey.includes('ONE_WAY') ? (i.stationCount || 0) : 0);
+            const stationCount = items.map(i => {
+                // For ONE_WAY tickets, use the station count or default to 0
+                if (i.typeKey === 'ONE_WAY') {
+                    return i.stationCount || 0;
+                }
+                // For other ticket types, station count is 0
+                return 0;
+            });
+                  
+            // Add payment method to the request
             const result = await createPurchase({
                 type: typeKeys,
                 stationCount,
-                userId: passengerInfo?.userId || '',
-                email
+                userId: passengerInfo?.id || '',
+                email,
+                paymentMethod: method  // Include payment method in the request
             }).unwrap();
+            
+            // After successful purchase, refresh wallet balance if e-wallet was used
+            if (method === PAYMENT_METHODS.EWALLET && walletId) {
+                refetchWallet();
+            }
+            
             enqueueSnackbar('Tickets issued successfully!', { variant: 'success' });
+            
             if (result.transactionId) {
                 generateReceipt({
                     transactionId: result.transactionId,
@@ -72,6 +136,7 @@ export default function PassengerPurchase() {
                     agentId: currentUser?.id || 'AGENT'
                 });
             }
+            
             dispatch(clearCart());
             if (!redirectedPassengerId) {
                 setPassengerId('');
@@ -125,6 +190,23 @@ export default function PassengerPurchase() {
                                 </Box>
                             </Box>
                         </Box>
+                        
+                        {/* Add wallet balance information */}
+                        {walletId && (
+                            <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
+                                <Wallet size={16} style={{ marginRight: 8 }} />
+                                <Typography variant="subtitle2">
+                                    Wallet Balance: 
+                                    {isWalletLoading ? (
+                                        <CircularProgress size={16} sx={{ ml: 1 }} />
+                                    ) : (
+                                        <span style={{ fontWeight: 'bold', marginLeft: 8 }}>
+                                            {walletBalance.toLocaleString()} VND
+                                        </span>
+                                    )}
+                                </Typography>
+                            </Box>
+                        )}
                     </CardContent>
                 </Card>
             )}
@@ -134,11 +216,36 @@ export default function PassengerPurchase() {
             <TicketTypeSelector
                 types={types}
                 items={items}
-                onChange={(key, qty) => {
-                    const t = types.find(x => x.key === key);
-                    if (!t) return;
-                    if (qty > 0) addItem({ typeKey: key, name: t.name, quantity: qty, price: t.price });
-                    else removeItem(key);
+                onChange={(key, qty, options = {}) => {
+                    if (qty > 0) {
+                        // Find base ticket type by matching the key prefix
+                        const baseType = types.find(t => t.key.startsWith(key));
+                        if (!baseType) {
+                            console.error(`Could not find ticket type for key: ${key}`);
+                            return;
+                        }
+                        
+                        let name = baseType.name;
+                        let price = baseType.price;
+                        let stationCount;
+                        
+                        // For ONE_WAY, use the provided options
+                        if (key === 'ONE_WAY' && options) {
+                            name = options.name || baseType.name;
+                            price = options.price || baseType.price;
+                            stationCount = options.stationCount;
+                        }
+                        
+                        addItem({ 
+                            typeKey: key, 
+                            name, 
+                            quantity: qty, 
+                            price,
+                            stationCount 
+                        });
+                    } else {
+                        removeItem(key);
+                    }
                 }}
             />
 
@@ -179,12 +286,21 @@ export default function PassengerPurchase() {
             <PaymentSelector
                 method={method}
                 onSelect={setMethod}
-                balance={balance}
+                balance={balance} // Now balance from usePayment reflects the correct value
                 cashReceived={cashReceived}
                 onCashChange={setCash}
                 change={change}
                 warning={warning}
+                walletLoading={isWalletLoading}
             />
+
+            {/* Show warning for insufficient balance - using balance from usePayment which now reflects the correct amount */}
+            {hasInsufficientBalance && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                    Insufficient wallet balance. Available: {balance.toLocaleString()} VND, 
+                    Required: {totalCost.toLocaleString()} VND
+                </Alert>
+            )}
 
             <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
                 <Button
@@ -221,6 +337,7 @@ export default function PassengerPurchase() {
                 onConfirm={handleConfirm}
                 disableConfirm={!canConfirm}
                 passengerInfo={passengerInfo}
+                walletBalance={method === PAYMENT_METHODS.EWALLET ? balance : null}
             />
         </Box>
     );

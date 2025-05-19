@@ -13,6 +13,7 @@ import {
     Box,
     Divider
 } from '@mui/material';
+import { Wallet } from 'lucide-react';
 
 export default function PurchaseSummaryDialog({ 
     open, 
@@ -22,7 +23,8 @@ export default function PurchaseSummaryDialog({
     warning, 
     onConfirm, 
     disableConfirm = false,
-    passengerInfo = null
+    passengerInfo = null,
+    walletBalance = null
 }) {
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -43,6 +45,21 @@ export default function PurchaseSummaryDialog({
                             National ID: {passengerInfo.nationalID}
                         </Typography>
                         <Divider sx={{ my: 1.5 }} />
+                    </Box>
+                )}
+
+                {/* Add wallet balance if payment is by e-wallet */}
+                {walletBalance !== null && (
+                    <Box sx={{ mt: 1, mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Wallet size={16} style={{ marginRight: 8 }} />
+                            E-Wallet Balance: {walletBalance.toLocaleString()} VND
+                        </Typography>
+                        {walletBalance < total && (
+                            <Alert severity="error" sx={{ mt: 1 }}>
+                                Insufficient balance for this purchase.
+                            </Alert>
+                        )}
                     </Box>
                 )}
                 
