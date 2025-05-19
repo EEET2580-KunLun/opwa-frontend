@@ -186,7 +186,7 @@ const SideBar = ({ user }) => {
                 <div className={`d-flex ${sidebarOpen ? 'align-items-center' : 'justify-content-center flex-column'} mb-2`}>
                     <Link
                         to={getProfileUrl()}
-                        state={{ initialData: user, isEditMode: true, editorRole: user.role }}
+                        state={{ initialData: user, isEditMode: true, editorRole: user?.role }}
                         className="avatar-circle position-relative"
                         style={{ cursor: 'pointer' }}
                     >
