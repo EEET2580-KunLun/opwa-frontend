@@ -97,13 +97,20 @@ export default function PassengerPurchase() {
             }
             
             const typeKeys = items.map(i => i.typeKey);
-            const stationCount = items.map(i => i.typeKey.includes('ONE_WAY') ? (i.stationCount || 0) : 0);
-            
+            const stationCount = items.map(i => {
+                // For ONE_WAY tickets, use the station count or default to 0
+                if (i.typeKey === 'ONE_WAY') {
+                    return i.stationCount || 0;
+                }
+                // For other ticket types, station count is 0
+                return 0;
+            });
+                  
             // Add payment method to the request
             const result = await createPurchase({
                 type: typeKeys,
                 stationCount,
-                userId: passengerInfo?.userId || '',
+                userId: passengerInfo?.id || '',
                 email,
                 paymentMethod: method  // Include payment method in the request
             }).unwrap();
@@ -209,11 +216,36 @@ export default function PassengerPurchase() {
             <TicketTypeSelector
                 types={types}
                 items={items}
-                onChange={(key, qty) => {
-                    const t = types.find(x => x.key === key);
-                    if (!t) return;
-                    if (qty > 0) addItem({ typeKey: key, name: t.name, quantity: qty, price: t.price });
-                    else removeItem(key);
+                onChange={(key, qty, options = {}) => {
+                    if (qty > 0) {
+                        // Find base ticket type by matching the key prefix
+                        const baseType = types.find(t => t.key.startsWith(key));
+                        if (!baseType) {
+                            console.error(`Could not find ticket type for key: ${key}`);
+                            return;
+                        }
+                        
+                        let name = baseType.name;
+                        let price = baseType.price;
+                        let stationCount;
+                        
+                        // For ONE_WAY, use the provided options
+                        if (key === 'ONE_WAY' && options) {
+                            name = options.name || baseType.name;
+                            price = options.price || baseType.price;
+                            stationCount = options.stationCount;
+                        }
+                        
+                        addItem({ 
+                            typeKey: key, 
+                            name, 
+                            quantity: qty, 
+                            price,
+                            stationCount 
+                        });
+                    } else {
+                        removeItem(key);
+                    }
                 }}
             />
 
