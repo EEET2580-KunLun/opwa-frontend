@@ -464,7 +464,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
         // Create a JSON object for staff data
         const staffJsonData = {
             email: formData.email,
-            username: !isEditMode ? formData.username : undefined,  // Only include username for new staff
+            username: formData.username,
             password: formData.password || undefined,  // Convert empty string to undefined
             firstName: formData.firstName,
             middleName: formData.middleName || '',
@@ -884,12 +884,6 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                         helperText={errors.username}
                         placeholder="Enter username"
                         InputLabelProps={{shrink: true}}
-                        sx={{
-                            "& .Mui-disabled": {
-                                opacity: 0.7,
-                                "-webkit-text-fill-color": "#666",
-                            }
-                        }}
                     />
                 </Grid>
 

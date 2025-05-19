@@ -126,7 +126,7 @@ export const lineApiSlice = apiSlice.injectEndpoints({
                 method: 'GET',
                 params: { page, size },
             }),
-            transformResponse: (response) => response.data,
+            transformResponse: (response) => response.data.content,
             providesTags: (result, error, { id }) => [{ type: 'Trip', id }]
         }),
 
