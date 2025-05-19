@@ -3,7 +3,7 @@ import { API_URL } from "../../../app/config/Api.js";
 /**
  * @returns {Promise<Object>} - Login result with success status and data
  * */
-export const login = async(email, password) => {
+export const login = async (email, password) => {
     try {
         const response = await fetch(`${API_URL}/v1/auth/login`, {
             method: "POST",
@@ -19,7 +19,7 @@ export const login = async(email, password) => {
         const data = await response.json();
         console.log("Login response:", data);
 
-        if(!response.ok) {
+        if (!response.ok) {
             return {
                 success: false,
                 message: data.meta?.message || "Login failed. Please try again."
@@ -52,9 +52,9 @@ export const login = async(email, password) => {
             refreshToken: refreshToken,
             expiresIn: data.data?.expiresIn || {},
         }
-    } catch(error){
+    } catch (error) {
         console.error("Login error: ", error);
-        return{
+        return {
             success: false,
             message: "Network error. Please try again later."
         }
