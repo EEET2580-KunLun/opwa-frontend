@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
     Typography,
@@ -10,11 +10,13 @@ import {
     Button,
     Card,
     CardContent,
-    Chip,
-    Alert
+    Chip
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { useGetPawaTicketTypesQuery, usePurchaseTicketsForPassengerMutation } from '../store/pawaTicketApiSlice';
+import {
+    useGetPawaTicketTypesQuery,
+    usePurchaseTicketsForPassengerMutation
+} from '../store/pawaTicketApiSlice';
 import TicketTypeSelector from './TicketTypeSelector';
 import PaymentSelector from './PaymentSelector';
 import PurchaseSummaryDialog from './PurchaseSummaryDialog';
@@ -29,127 +31,71 @@ import { validatePassengerId } from '../utils/validationUtils';
 export default function PassengerPurchase() {
     const location = useLocation();
     const { passengerId: redirectedPassengerId, passengerInfo } = location.state || {};
-    
     const { data: types = [] } = useGetPawaTicketTypesQuery();
     const [createPurchase] = usePurchaseTicketsForPassengerMutation();
-
     const dispatch = useDispatch();
     const currentUser = useSelector(state => state.auth.user);
-
-    const { items, addItem, removeItem, clearCart: resetCart, totalCost } = useCart();
-    const {
-        method,
-        balance,
-        cashReceived,
-        change,
-        warning,
-        isValid: paymentValid,
-        setMethod,
-        setCash
-    } = usePayment(totalCost);
-
+    const { enqueueSnackbar } = useSnackbar();
+    const { items, addItem, removeItem, totalCost } = useCart();
+    const { method, balance, cashReceived, change, warning, isValid: paymentValid, setMethod, setCash } = usePayment(totalCost);
     const [passengerId, setPassengerId] = useState(redirectedPassengerId || '');
     const [email, setEmail] = useState(passengerInfo?.email || '');
     const [summaryOpen, setSummaryOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { enqueueSnackbar } = useSnackbar();
-
-    // Initialize default ticket
-    useEffect(() => {
-        if (types.length && !items.length) {
-            const t = types[0];
-            addItem({ typeKey: t.key, name: t.name, quantity: 1, price: t.price });
-        }
-    }, [types, items.length, addItem]);
-
-    // Validates passenger ID format
     const idValid = redirectedPassengerId || validatePassengerId(passengerId);
-
-    // Only enable confirm if we have items, valid ID, and payment ok
     const canConfirm = items.length > 0 && idValid && paymentValid;
 
     const handleConfirm = async () => {
         setIsSubmitting(true);
         try {
-            // Transform items into the format expected by the API
-            const type = items.map(item => item.typeKey);
-            const stationCount = items.map(item => {
-                // Extract station count from typeKey if applicable
-                // For ONE_WAY tickets, you might need to extract the station count
-                // For DAILY tickets, it might be 0 or null
-                // Adjust this logic based on your ticket type structure
-                if (item.typeKey.includes('ONE_WAY')) {
-                    // Extract station count (assuming it's embedded in the key or available elsewhere)
-                    return item.stationCount || 0;
-                }
-                return 0; // Default for passes like DAILY that don't have station counts
-            });
-
-            // Create request in the format expected by the API
-            const purchaseData = {
-                type: type,
-                stationCount: stationCount,
-                userId: passengerInfo?.userId || "",
-                email: email
-            };
-            
-            const result = await createPurchase(purchaseData).unwrap();
-
+            const typeKeys = items.map(i => i.typeKey);
+            const stationCount = items.map(i => i.typeKey.includes('ONE_WAY') ? (i.stationCount || 0) : 0);
+            const result = await createPurchase({
+                type: typeKeys,
+                stationCount,
+                userId: passengerInfo?.userId || '',
+                email
+            }).unwrap();
             enqueueSnackbar('Tickets issued successfully!', { variant: 'success' });
-
             if (result.transactionId) {
                 generateReceipt({
                     transactionId: result.transactionId,
                     timestamp: new Date().toISOString(),
                     passengerId,
-                    passengerName: passengerInfo ? 
-                        `${passengerInfo.firstName} ${passengerInfo.lastName}` : 
-                        "Customer",
-                    email: email,
+                    passengerName: passengerInfo ? `${passengerInfo.firstName} ${passengerInfo.lastName}` : 'Customer',
+                    email,
                     items,
                     total: totalCost,
-                    paymentMethod: method, 
+                    paymentMethod: method,
                     cashReceived,
                     agentId: currentUser?.id || 'AGENT'
                 });
             }
-
-            // Reset full form
-            resetCart();
+            dispatch(clearCart());
             if (!redirectedPassengerId) {
                 setPassengerId('');
                 setEmail('');
             }
             setSummaryOpen(false);
         } catch (error) {
-            console.error('Purchase failed:', error);
-            enqueueSnackbar(
-                error.data?.message || 'Failed to issue tickets. Please try again.',
-                { variant: 'error' }
-            );
+            console.error(error);
+            enqueueSnackbar(error.data?.message || 'Failed to issue tickets. Please try again.', { variant: 'error' });
         } finally {
             setIsSubmitting(false);
         }
     };
+
     const handleScanQR = async () => {
         setIsLoading(true);
-        try {
-            // Simulate scan
-            const mockId = 'P' + Math.floor(Math.random() * 1e6).toString().padStart(6, '0');
-            setPassengerId(mockId);
-            // Simulate balance fetch delay
-            await new Promise(r => setTimeout(r, 800));
-        } catch {
-            // ignore
-        } finally {
-            setIsLoading(false);
-        }
+        const mockId = 'P' + Math.floor(Math.random() * 1e6).toString().padStart(6, '0');
+        setPassengerId(mockId);
+        await new Promise(r => setTimeout(r, 800));
+        setIsLoading(false);
     };
 
     return (
         <Box sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
-            {/* Show passenger info when redirected from passenger management */}
             {passengerInfo && (
                 <Card sx={{ mb: 3 }}>
                     <CardContent>
@@ -157,25 +103,19 @@ export default function PassengerPurchase() {
                             <User size={20} style={{ marginRight: 8 }} />
                             <Typography variant="h6">Passenger Information</Typography>
                         </Box>
-                        
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                             <Box sx={{ minWidth: 200 }}>
                                 <Typography variant="body2" color="text.secondary">Name</Typography>
-                                <Typography variant="body1">
-                                    {passengerInfo.firstName} {passengerInfo.middleName} {passengerInfo.lastName}
-                                </Typography>
+                                <Typography variant="body1">{passengerInfo.firstName} {passengerInfo.middleName} {passengerInfo.lastName}</Typography>
                             </Box>
-                            
                             <Box sx={{ minWidth: 150 }}>
                                 <Typography variant="body2" color="text.secondary">National ID</Typography>
                                 <Typography variant="body1">{passengerInfo.nationalID}</Typography>
                             </Box>
-                            
                             <Box sx={{ minWidth: 150 }}>
                                 <Typography variant="body2" color="text.secondary">Phone</Typography>
                                 <Typography variant="body1">{passengerInfo.phoneNumber}</Typography>
                             </Box>
-                            
                             <Box sx={{ minWidth: 150 }}>
                                 <Typography variant="body2" color="text.secondary">Special Status</Typography>
                                 <Box sx={{ mt: 0.5 }}>
@@ -197,9 +137,8 @@ export default function PassengerPurchase() {
                 onChange={(key, qty) => {
                     const t = types.find(x => x.key === key);
                     if (!t) return;
-                    qty > 0
-                        ? addItem({ typeKey: key, name: t.name, quantity: qty, price: t.price })
-                        : removeItem(key);
+                    if (qty > 0) addItem({ typeKey: key, name: t.name, quantity: qty, price: t.price });
+                    else removeItem(key);
                 }}
             />
 
@@ -220,7 +159,7 @@ export default function PassengerPurchase() {
                         endAdornment: (
                             <InputAdornment position="end">
                                 <IconButton onClick={handleScanQR} disabled={isLoading}>
-                                    {isLoading ? <CircularProgress size={20}/> : <QrCode size={20}/>}
+                                    {isLoading ? <CircularProgress size={20} /> : <QrCode size={20} />}
                                 </IconButton>
                             </InputAdornment>
                         )
@@ -228,7 +167,6 @@ export default function PassengerPurchase() {
                 />
             )}
 
-            {/* Add email field */}
             <TextField
                 label="Email"
                 value={email}
@@ -252,7 +190,13 @@ export default function PassengerPurchase() {
                 <Button
                     variant="outlined"
                     fullWidth
-                    onClick={() => { resetCart(); if (!redirectedPassengerId) { setPassengerId(''); setEmail(''); }}}
+                    onClick={() => {
+                        dispatch(clearCart());
+                        if (!redirectedPassengerId) {
+                            setPassengerId('');
+                            setEmail('');
+                        }
+                    }}
                     sx={{ textTransform: 'none', borderRadius: 99 }}
                 >
                     Clear Form
@@ -264,7 +208,7 @@ export default function PassengerPurchase() {
                     disabled={!canConfirm || isSubmitting}
                     sx={{ textTransform: 'none', borderRadius: 99, py: 1.5 }}
                 >
-                    {isSubmitting ? <CircularProgress size={24}/> : 'Pay Now'}
+                    {isSubmitting ? <CircularProgress size={24} /> : 'Pay Now'}
                 </Button>
             </Box>
 

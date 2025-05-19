@@ -1,29 +1,45 @@
+
+
 import { pawaApiSlice } from '../../../app/config/api/pawaApiSlice';
 import { TICKET_ENDPOINTS } from '../../../app/config/Api.js';
 
 export const pawaTicketApiSlice = pawaApiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        // Get ticket types from PAWA
+        /**
+         * Fetch the list of ticket types from the PAWA backend.
+         * We transform the response so that each ticket gets a unique `key`
+         * by appending its index in the array.
+         */
         getPawaTicketTypes: builder.query({
             query: () => ({
                 url: TICKET_ENDPOINTS.TYPES,
                 method: 'GET'
             }),
             transformResponse: (response) => {
-                return response.map(ticket => ({
-                    key: ticket.type,
-                    name: ticket.name,
-                    price: ticket.price,
-                    validHours: ticket.validHours,
-                    requirements: ticket.requirements,
-                    type: ticket.type,
-                    allowQuantity: true,
-                    stationCount: ticket.type === 'ONE_WAY'
+                return response.map((ticket, idx) => ({
+                    // 👇 unique key per item to prevent React/Redux collisions
+                    key: `${ticket.type}-${idx}`,
+
+                    // the display name and price
+                    name:        ticket.name,
+                    price:       ticket.price,
+
+                    // any other metadata you need
+                    validHours:  ticket.validHours,
+                    requirements:ticket.requirements,
+
+                    // if it's a one-way ticket, you might track stationCount
+                    stationCount: ticket.stationCount ?? null,
+
+                    // allow the user to choose quantity on the UI
+                    allowQuantity: true
                 }));
             }
         }),
 
-        // Agent ticket purchase
+        /**
+         * Mutation for an agent purchasing tickets on behalf of a passenger
+         */
         purchaseTicketsForPassenger: builder.mutation({
             query: (purchaseData) => ({
                 url: TICKET_ENDPOINTS.AGENT_PURCHASE,
@@ -33,7 +49,9 @@ export const pawaTicketApiSlice = pawaApiSlice.injectEndpoints({
             invalidatesTags: ['Passengers']
         }),
 
-        // Get all tickets
+        /**
+         * Fetch all tickets (e.g. for history or admin view)
+         */
         getAllTickets: builder.query({
             query: () => ({
                 url: TICKET_ENDPOINTS.ALL,
@@ -41,11 +59,11 @@ export const pawaTicketApiSlice = pawaApiSlice.injectEndpoints({
             }),
             providesTags: ['Tickets']
         })
-    }),
+    })
 });
 
 export const {
     useGetPawaTicketTypesQuery,
     usePurchaseTicketsForPassengerMutation,
-    useGetAllTicketsQuery,
+    useGetAllTicketsQuery
 } = pawaTicketApiSlice;
