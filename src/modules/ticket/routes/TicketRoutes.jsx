@@ -34,4 +34,4 @@ d        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN',
     </>
 );
 
-export default TicketRoutes;``
+export default TicketRoutes;
