@@ -66,6 +66,7 @@ export const STATION_ENDPOINTS = {
 export const TICKET_ENDPOINTS = {
     TYPES: '/tickets/type',
     AGENT_PURCHASE: '/tickets/agent-purchase',
+    AGENT_PURCHASE_GUEST: '/tickets/agent-purchase/guest',
     ALL: '/tickets/',
 };
 

@@ -24,7 +24,8 @@ export default function PurchaseSummaryDialog({
     onConfirm, 
     disableConfirm = false,
     passengerInfo = null,
-    walletBalance = null
+    walletBalance = null,
+    guestPurchase = false
 }) {
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -32,8 +33,8 @@ export default function PurchaseSummaryDialog({
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}>Purchase Summary</Typography>
             </DialogTitle>
 
-            <DialogContent>
-                {passengerInfo && (
+             <DialogContent>
+                {passengerInfo && !guestPurchase && (
                     <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                             Passenger Information
@@ -43,6 +44,18 @@ export default function PurchaseSummaryDialog({
                         </Typography>
                         <Typography variant="body2">
                             National ID: {passengerInfo.nationalID}
+                        </Typography>
+                        <Divider sx={{ my: 1.5 }} />
+                    </Box>
+                )}
+
+                {guestPurchase && (
+                    <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                            Guest Purchase
+                        </Typography>
+                        <Typography variant="body2">
+                            This is a walk-in guest purchase. No passenger details required.
                         </Typography>
                         <Divider sx={{ my: 1.5 }} />
                     </Box>

@@ -18,7 +18,8 @@ export default function PaymentSelector({
     onCashChange, 
     change, 
     warning,
-    walletLoading = false 
+    walletLoading = false,
+    disableEwallet = false 
 }) {
     // Check if using e-wallet payment
     const isEwalletPayment = method === PAYMENT_METHODS.EWALLET;
@@ -50,7 +51,7 @@ export default function PaymentSelector({
                     }
                 }}
             >
-                <ToggleButton value={PAYMENT_METHODS.EWALLET}>
+                <ToggleButton value={PAYMENT_METHODS.EWALLET} disabled={disableEwallet}>
                     E-Wallet Payment
                 </ToggleButton>
                 <ToggleButton value={PAYMENT_METHODS.CASH}>

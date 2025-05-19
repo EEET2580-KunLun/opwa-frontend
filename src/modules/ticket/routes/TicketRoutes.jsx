@@ -29,7 +29,7 @@ d        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN',
             <Route path="/tickets/history" element={<TicketHistory />} />
             <Route path="/admin/tickets" element={<TicketList />} />
             <Route path="/admin/tickets/history" element={<TicketHistory />} />
-
+        
         </Route>
     </>
 );

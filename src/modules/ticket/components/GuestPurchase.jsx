@@ -1,96 +1,138 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Typography,
-    TextField,
     CircularProgress,
     Box,
-    Button
+    Button,
+    Alert
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { useGetTicketTypesQuery, useCreatePurchaseMutation } from '../store/ticketApiSlice';
+import {
+    useGetPawaTicketTypesQuery,
+    usePurchaseTicketsForGuestMutation
+} from '../store/pawaTicketApiSlice';
 import TicketTypeSelector from './TicketTypeSelector';
 import PaymentSelector from './PaymentSelector';
 import PurchaseSummaryDialog from './PurchaseSummaryDialog';
 import { useCart } from '../hooks/useCart';
 import { usePayment } from '../hooks/usePayment';
-import { useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '../store/ticketSlice';
+import { generateReceipt } from '../utils/receiptGenerator';
+import { PAYMENT_METHODS } from '../utils/constants';
 
 export default function GuestPurchase() {
-    const { data: types = [] } = useGetTicketTypesQuery();
-    const [createPurchase] = useCreatePurchaseMutation();
+    const { data: types = [] } = useGetPawaTicketTypesQuery();
+    const [createPurchase] = usePurchaseTicketsForGuestMutation();
     const dispatch = useDispatch();
     const { enqueueSnackbar } = useSnackbar();
-
-    const {
-        items,
-        addItem,
-        removeItem,
-        totalCost,
-        clearCart: resetCart
-    } = useCart();
-
-    const {
-        method,
-        cashReceived,
-        change,
+    const currentUser = useSelector(state => state.auth.user);
+    
+    const { items, addItem, removeItem, totalCost } = useCart();
+    
+    // Use the same payment functionality as passenger purchase
+    const { 
+        method, 
+        cashReceived, 
+        change, 
         warning,
-        setMethod,
-        setCash,
-        isValid: paymentValid
+        isValid: paymentValid, 
+        setMethod, 
+        setCash 
     } = usePayment(totalCost);
-
+    
     const [summaryOpen, setSummaryOpen] = useState(false);
-    const [nationalId, setNationalId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Clear cart only once on mount
-    useEffect(() => {
-        resetCart();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
+    
     const canConfirm = items.length > 0 && paymentValid;
-
+    
     const handleConfirm = async () => {
         setIsSubmitting(true);
         try {
-            await createPurchase({
-                purchaserId: nationalId,
-                items,
-                paymentMethod: method,
-                cashReceived
+            // Extract type keys and station counts correctly
+            const typeKeys = items.map(i => i.typeKey);
+            const stationCount = items.map(i => {
+                // For ONE_WAY tickets, use the station count or default to 0
+                if (i.typeKey === 'ONE_WAY') {
+                    return i.stationCount || 0;
+                }
+                // For other ticket types, station count is 0
+                return 0;
+            });
+            
+            // Use the current agent's ID since this is a guest purchase
+            const result = await createPurchase({
+                type: typeKeys,
+                stationCount,
+                userId: currentUser?.id || 'AGENT' // Use agent ID for guest purchases
             }).unwrap();
-
-            enqueueSnackbar('Tickets issued successfully!', { variant: 'success' });
+            
+            enqueueSnackbar('Guest tickets issued successfully!', { variant: 'success' });
+            
+            if (result.transactionId) {
+                generateReceipt({
+                    transactionId: result.transactionId,
+                    timestamp: new Date().toISOString(),
+                    passengerId: result.guestId || 'GUEST',
+                    passengerName: 'Guest Customer',
+                    items,
+                    total: totalCost,
+                    paymentMethod: method,
+                    cashReceived,
+                    agentId: currentUser?.id || 'AGENT'
+                });
+            }
+            
             dispatch(clearCart());
-            setNationalId('');
             setSummaryOpen(false);
         } catch (error) {
-            console.error('Purchase failed:', error);
-            enqueueSnackbar(
-                error.data?.message || 'Failed to issue tickets.',
-                { variant: 'error' }
-            );
+            console.error(error);
+            enqueueSnackbar(error.data?.message || 'Failed to issue tickets. Please try again.', { variant: 'error' });
         } finally {
             setIsSubmitting(false);
         }
     };
-
+    
     return (
         <Box sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
-            <Typography variant="h6" gutterBottom>
-                Ticket Types
-            </Typography>
+            <Typography variant="h6" gutterBottom>Guest Ticket Purchase</Typography>
+            
+            <Alert severity="info" sx={{ mb: 2 }}>
+                These tickets are for walk-in guests and do not require a passenger account.
+            </Alert>
+            
+            <Typography variant="h6" gutterBottom>Ticket Types</Typography>
 
             <TicketTypeSelector
                 types={types}
                 items={items}
-                onChange={(key, qty) => {
-                    const t = types.find(x => x.key === key);
-                    if (!t) return;
+                onChange={(key, qty, options = {}) => {
                     if (qty > 0) {
-                        addItem({ typeKey: key, name: t.name, quantity: qty, price: t.price });
+                        // Find base ticket type by matching the key prefix
+                        const baseType = types.find(t => t.key.startsWith(key));
+                        if (!baseType) {
+                            console.error(`Could not find ticket type for key: ${key}`);
+                            return;
+                        }
+                        
+                        let name = baseType.name;
+                        let price = baseType.price;
+                        let stationCount;
+                        
+                        // For ONE_WAY, use the provided options
+                        if (key === 'ONE_WAY' && options) {
+                            name = options.name || baseType.name;
+                            price = options.price || baseType.price;
+                            stationCount = options.stationCount;
+                        }
+                        
+                        addItem({ 
+                            typeKey: key, 
+                            name, 
+                            quantity: qty, 
+                            price,
+                            stationCount 
+                        });
                     } else {
                         removeItem(key);
                     }
@@ -101,22 +143,14 @@ export default function GuestPurchase() {
                 Total Cost: {totalCost.toLocaleString()} VND
             </Typography>
 
-            <TextField
-                label="National ID"
-                value={nationalId}
-                onChange={e => setNationalId(e.target.value)}
-                fullWidth
-                sx={{ mt: 2 }}
-            />
-
             <PaymentSelector
                 method={method}
                 onSelect={setMethod}
-                balance={0}
                 cashReceived={cashReceived}
                 onCashChange={setCash}
                 change={change}
                 warning={warning}
+                disableEwallet={true} // Disable e-wallet for guests since they don't have an account
             />
 
             <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
@@ -135,7 +169,7 @@ export default function GuestPurchase() {
                     disabled={!canConfirm || isSubmitting}
                     sx={{ textTransform: 'none', borderRadius: 99, py: 1.5 }}
                 >
-                    {isSubmitting ? <CircularProgress size={24} /> : 'Issue the Tickets'}
+                    {isSubmitting ? <CircularProgress size={24} /> : 'Issue Guest Tickets'}
                 </Button>
             </Box>
 
@@ -146,7 +180,8 @@ export default function GuestPurchase() {
                 total={totalCost}
                 warning={warning}
                 onConfirm={handleConfirm}
-                disableConfirm={!canConfirm}
+                disableConfirm={!canConfirm || isSubmitting}
+                guestPurchase={true}
             />
         </Box>
     );

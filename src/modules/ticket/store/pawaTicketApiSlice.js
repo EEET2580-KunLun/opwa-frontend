@@ -49,6 +49,18 @@ export const pawaTicketApiSlice = pawaApiSlice.injectEndpoints({
             invalidatesTags: ['Passengers']
         }),
 
+             /**
+         * Mutation for an agent purchasing tickets on behalf of a guest
+         */
+        purchaseTicketsForGuest: builder.mutation({
+            query: (purchaseData) => ({
+                url: TICKET_ENDPOINTS.AGENT_PURCHASE_GUEST,
+                method: 'POST',
+                body: purchaseData
+            }),
+            invalidatesTags: ['Guests']
+        }),
+
         /**
          * Fetch all tickets (e.g. for history or admin view)
          */
@@ -65,5 +77,6 @@ export const pawaTicketApiSlice = pawaApiSlice.injectEndpoints({
 export const {
     useGetPawaTicketTypesQuery,
     usePurchaseTicketsForPassengerMutation,
+    usePurchaseTicketsForGuestMutation,
     useGetAllTicketsQuery
 } = pawaTicketApiSlice;
