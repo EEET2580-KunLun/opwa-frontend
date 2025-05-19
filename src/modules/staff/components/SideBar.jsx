@@ -109,7 +109,6 @@ const SideBar = ({ user }) => {
 
             <SectionHeader title="Tickets" />
             <NavItem to="/ticket-agent/tickets" icon={CreditCard} label="Ticket Sales" exact />
-            <NavItem to="/ticket-agent/tickets/history" icon={ClockHistory} label="Ticket History" exact />
         </>
     );
 

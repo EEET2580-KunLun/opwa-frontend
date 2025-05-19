@@ -11,7 +11,6 @@ import lineReducer from '../../modules/line/store/lineSlice';
 import stationReducer from '../../modules/station/store/stationSlice';
 import ticketReducer from '../../modules/ticket/store/ticketSlice';
 import { ticketApi } from '../../modules/ticket/store/ticketApiSlice';
-import { setupListeners } from '@reduxjs/toolkit/query';
 
 // Create the encryption transform
 const encryptor = encryptTransform({
@@ -56,15 +55,6 @@ const rootReducer = (state, action) => {
 // Apply persistence to the entire root reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-//
-// // Apply persistence to the entire root reducer
-// const persistedReducer = persistReducer(persistConfig,
-//     combineReducers({
-//         auth: authReducer,
-//         [apiSlice.reducerPath]: apiSlice.reducer,
-//         staff: staffReducer,
-//     })
-// );
 
 // Create the Redux store
 export const store = configureStore({

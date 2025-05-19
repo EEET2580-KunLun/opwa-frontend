@@ -6,9 +6,9 @@ import {ThemeProvider} from '@mui/material/styles';
 // Lazy load ticket components
 const GuestPurchase = lazy(() => import('../components/GuestPurchase'));
 const PassengerPurchase = lazy(() => import('../components/PassengerPurchase'));
-const TicketHistory = lazy(() => import('../components/TicketHistory'));
 const TicketDashboard = lazy(() => import('../components/TicketDashboard'));
 const TicketList = lazy(() => import('../components/TicketList'))
+const TicketManagement = lazy(() => import('../components/TicketManagement'));
 
 const withTicketTheme = (Component) => (
     <ThemeProvider theme={theme}>
@@ -21,15 +21,12 @@ const TicketRoutes = (
         {/* Public Guest Flow */}
         <Route path="/tickets/guest-purchase" element={<GuestPurchase />} />
 
-d        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN', 'TICKET_AGENT']} />}>
+        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'MASTER_ADMIN', 'TICKET_AGENT']} />}>
             <Route path="/ticket-agent/dashboard" element={<TicketDashboard />} />
             <Route path="/ticket-agent/tickets" element={<TicketList />} />
             <Route path="/ticket-agent/tickets/sell" element={<PassengerPurchase />} />
             <Route path="/tickets/purchase" element={<PassengerPurchase />} />
-            <Route path="/tickets/history" element={<TicketHistory />} />
-            <Route path="/admin/tickets" element={<TicketList />} />
-            <Route path="/admin/tickets/history" element={<TicketHistory />} />
-        
+            <Route path="/admin/tickets" element={<TicketManagement />} />
         </Route>
     </>
 );
