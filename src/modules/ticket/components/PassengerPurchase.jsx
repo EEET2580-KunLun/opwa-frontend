@@ -18,22 +18,24 @@ import {
     useGetPawaTicketTypesQuery,
     usePurchaseTicketsForPassengerMutation
 } from '../store/pawaTicketApiSlice';
-import { useGetWalletByIdQuery } from '../../passenger/store/pawaPassengerApiSlice';
+import { 
+    useGetWalletByIdQuery, 
+    useGetPassengerByIdQuery 
+} from '../../passenger/store/pawaPassengerApiSlice';
 import TicketTypeSelector from './TicketTypeSelector';
 import PaymentSelector from './PaymentSelector';
 import PurchaseSummaryDialog from './PurchaseSummaryDialog';
 import { useCart } from '../hooks/useCart';
 import { usePayment } from '../hooks/usePayment';
-import { QrCode, User, Wallet } from 'lucide-react';
+import { QrCode, User, Wallet, Search } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '../store/ticketSlice';
 import { generateReceipt } from '../utils/receiptGenerator';
-import { validatePassengerId } from '../utils/validationUtils';
 import { PAYMENT_METHODS } from '../utils/constants';
 
 export default function PassengerPurchase() {
     const location = useLocation();
-    const { passengerId: redirectedPassengerId, passengerInfo } = location.state || {};
+    const { passengerId: redirectedPassengerId, passengerInfo: initialPassengerInfo } = location.state || {};
     const { data: types = [] } = useGetPawaTicketTypesQuery();
     const [createPurchase] = usePurchaseTicketsForPassengerMutation();
     const dispatch = useDispatch();
@@ -42,13 +44,23 @@ export default function PassengerPurchase() {
     const { items, addItem, removeItem, totalCost } = useCart();
     
     const [passengerId, setPassengerId] = useState(redirectedPassengerId || '');
-    const [email, setEmail] = useState(passengerInfo?.email || '');
     const [summaryOpen, setSummaryOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [walletId, setWalletId] = useState(passengerInfo?.userId || '');
+    const [walletId, setWalletId] = useState(initialPassengerInfo?.userId || '');
+    const [passengerInfo, setPassengerInfo] = useState(initialPassengerInfo || null);
+    const [searchTriggered, setSearchTriggered] = useState(false);
     
-    const idValid = redirectedPassengerId || validatePassengerId(passengerId);
+    const idValid = redirectedPassengerId || passengerId.trim() !== '';    
+    // Skip passenger query unless search is triggered
+    const { 
+        data: fetchedPassengerData,
+        isFetching: isPassengerFetching,
+        isError: isPassengerError,
+        error: passengerError
+    } = useGetPassengerByIdQuery(passengerId, {
+        skip: !searchTriggered || !idValid || !!redirectedPassengerId
+    });
     
     // Skip wallet query if no wallet ID is available
     const { 
@@ -75,16 +87,46 @@ export default function PassengerPurchase() {
     
     const hasInsufficientBalance = method === PAYMENT_METHODS.EWALLET && balance < totalCost;
     
+    // Handle successful passenger fetch
     useEffect(() => {
-        if (passengerId && idValid) {
-           const userId = passengerInfo?.userId || passengerId;
+        if (fetchedPassengerData && searchTriggered) {
+            setPassengerInfo(fetchedPassengerData);
+            setWalletId(fetchedPassengerData.userId || '');
+            setSearchTriggered(false);
+            enqueueSnackbar('Passenger information loaded successfully', { variant: 'success' });
+        }
+    }, [fetchedPassengerData, searchTriggered, enqueueSnackbar]);
+    
+    // Handle passenger fetch error
+    useEffect(() => {
+        if (isPassengerError && searchTriggered) {
+            enqueueSnackbar(
+                passengerError?.data?.message || 'Passenger not found. Please verify the ID.',
+                { variant: 'error' }
+            );
+            setSearchTriggered(false);
+        }
+    }, [isPassengerError, searchTriggered, passengerError, enqueueSnackbar]);
+    
+    // Update walletId when passengerId changes and is valid
+    useEffect(() => {
+        if (passengerId && idValid && passengerInfo) {
+            const userId = passengerInfo?.userId || passengerId;
             setWalletId(userId);
-        } else {
+        } else if (!passengerInfo) {
             setWalletId('');
         }
     }, [passengerId, idValid, passengerInfo]);
 
-    const canConfirm = items.length > 0 && idValid && paymentValid && !hasInsufficientBalance;
+    const canConfirm = items.length > 0 && idValid && passengerInfo && paymentValid && !hasInsufficientBalance;
+    
+    const handleSearchPassenger = () => {
+        if (!passengerId || !idValid) {
+            enqueueSnackbar('Please enter a valid passenger ID', { variant: 'warning' });
+            return;
+        }
+        setSearchTriggered(true);
+    };
 
     const handleConfirm = async () => {
         setIsSubmitting(true);
@@ -110,8 +152,7 @@ export default function PassengerPurchase() {
             const result = await createPurchase({
                 type: typeKeys,
                 stationCount,
-                userId: passengerInfo?.id || '',
-                email,
+                userId: passengerInfo?.userId || '',
                 paymentMethod: method  // Include payment method in the request
             }).unwrap();
             
@@ -128,7 +169,6 @@ export default function PassengerPurchase() {
                     timestamp: new Date().toISOString(),
                     passengerId,
                     passengerName: passengerInfo ? `${passengerInfo.firstName} ${passengerInfo.lastName}` : 'Customer',
-                    email,
                     items,
                     total: totalCost,
                     paymentMethod: method,
@@ -140,7 +180,7 @@ export default function PassengerPurchase() {
             dispatch(clearCart());
             if (!redirectedPassengerId) {
                 setPassengerId('');
-                setEmail('');
+                setPassengerInfo(null);
             }
             setSummaryOpen(false);
         } catch (error) {
@@ -153,14 +193,61 @@ export default function PassengerPurchase() {
 
     const handleScanQR = async () => {
         setIsLoading(true);
+        // Simulate QR scan - in a real app, this would trigger camera access
         const mockId = 'P' + Math.floor(Math.random() * 1e6).toString().padStart(6, '0');
         setPassengerId(mockId);
         await new Promise(r => setTimeout(r, 800));
         setIsLoading(false);
+        // Automatically trigger search after "scanning"
+        setSearchTriggered(true);
+    };
+    
+    const handleClearForm = () => {
+        dispatch(clearCart());
+        if (!redirectedPassengerId) {
+            setPassengerId('');
+             setPassengerInfo(null);
+            setWalletId('');
+        }
     };
 
     return (
         <Box sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
+            {!redirectedPassengerId && (
+                <Box sx={{ mb: 4 }}>
+                    <Typography variant="h6" gutterBottom>Find Passenger</Typography>
+                    
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <TextField
+                            label="Passenger ID"
+                            value={passengerId}
+                            onChange={e => setPassengerId(e.target.value)}
+                            error={passengerId !== '' && !idValid}
+                            helperText={passengerId !== '' && !idValid ? 'Invalid Passenger ID' : ''}
+                            fullWidth
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={handleScanQR} disabled={isLoading || isPassengerFetching}>
+                                            {isLoading ? <CircularProgress size={20} /> : <QrCode size={20} />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
+                        />
+                        <Button
+                            variant="contained"
+                            onClick={handleSearchPassenger}
+                            disabled={!idValid || isPassengerFetching}
+                            startIcon={isPassengerFetching ? <CircularProgress size={20} /> : <Search size={20} />}
+                            sx={{ height: 56, minWidth: 120 }}
+                        >
+                            {isPassengerFetching ? 'Searching...' : 'Search'}
+                        </Button>
+                    </Box>
+                </Box>
+            )}
+
             {passengerInfo && (
                 <Card sx={{ mb: 3 }}>
                     <CardContent>
@@ -253,48 +340,19 @@ export default function PassengerPurchase() {
                 Total Cost: {totalCost.toLocaleString()} VND
             </Typography>
 
-            {!redirectedPassengerId && (
-                <TextField
-                    label="Passenger ID"
-                    value={passengerId}
-                    onChange={e => setPassengerId(e.target.value)}
-                    error={passengerId !== '' && !idValid}
-                    helperText={passengerId !== '' && !idValid ? 'Invalid Passenger ID' : ''}
-                    fullWidth
-                    sx={{ mt: 2 }}
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton onClick={handleScanQR} disabled={isLoading}>
-                                    {isLoading ? <CircularProgress size={20} /> : <QrCode size={20} />}
-                                </IconButton>
-                            </InputAdornment>
-                        )
-                    }}
-                />
-            )}
-
-            <TextField
-                label="Email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                fullWidth
-                sx={{ mt: 2 }}
-                type="email"
-            />
-
             <PaymentSelector
                 method={method}
                 onSelect={setMethod}
-                balance={balance} // Now balance from usePayment reflects the correct value
+                balance={balance}
                 cashReceived={cashReceived}
                 onCashChange={setCash}
                 change={change}
                 warning={warning}
                 walletLoading={isWalletLoading}
+                disableEwallet={!passengerInfo} // Disable e-wallet if no passenger is selected
             />
 
-            {/* Show warning for insufficient balance - using balance from usePayment which now reflects the correct amount */}
+            {/* Show warning for insufficient balance */}
             {hasInsufficientBalance && (
                 <Alert severity="error" sx={{ mt: 2 }}>
                     Insufficient wallet balance. Available: {balance.toLocaleString()} VND, 
@@ -302,17 +360,18 @@ export default function PassengerPurchase() {
                 </Alert>
             )}
 
+            {/* Show warning if no passenger selected */}
+            {!passengerInfo && items.length > 0 && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                    Please search for a passenger before proceeding with the purchase.
+                </Alert>
+            )}
+
             <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
                 <Button
                     variant="outlined"
                     fullWidth
-                    onClick={() => {
-                        dispatch(clearCart());
-                        if (!redirectedPassengerId) {
-                            setPassengerId('');
-                            setEmail('');
-                        }
-                    }}
+                    onClick={handleClearForm}
                     sx={{ textTransform: 'none', borderRadius: 99 }}
                 >
                     Clear Form

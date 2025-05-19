@@ -25,13 +25,3 @@ export function validateQuantity(qty) {
 export function validateCashReceived(cash, total) {
     return cash >= total;
 }
-
-/**
- * Validates a passenger ID format
- * @param {string} id - The passenger ID to validate
- * @returns {boolean} - Whether the ID is valid
- */
-export function validatePassengerId(id) {
-    // Passenger IDs start with 'P' followed by numbers
-    return /^P[0-9]{6,}$/.test(id);
-}
