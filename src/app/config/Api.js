@@ -80,6 +80,7 @@ export const PASSENGER_ENDPOINTS = {
     CREATE: '/passenger',
     UPDATE: (id) => `/passenger/${id}`,
     DELETE: (id) => `/passenger/${id}`,
+    WALLET: (id) => `/wallet/${id}`,
 };
 
 export const CSRF_ENDPOINTS = {

@@ -4,6 +4,7 @@ import {useDispatch} from 'react-redux';
 import {login as setLogin} from "../store/authSlice.js";
 import {useLoginMutation} from "../store/authApiSlice.js";
 import {toast} from "sonner";
+import { API_URL } from "../../../app/config/Api.js";
 
 export const useLogin = () => {
     const [email, setEmail] = useState('');
@@ -88,7 +89,7 @@ export const useLogin = () => {
 
     const handleGoogleLogin = async () => {
         try {
-            window.location.href = "http://localhost:8080/oauth2/authorization/google";
+            window.location.href = `${API_URL}/oauth2/authorization/google`;
             console.log("Google login initiated");
         } catch (err) {
             setError('Google authentication failed. Please try again.');
