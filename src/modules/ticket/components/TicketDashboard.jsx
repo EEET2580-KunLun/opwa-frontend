@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Tabs, Tab, Box } from '@mui/material';
 import GuestPurchase from './GuestPurchase';
 import PassengerManagement from "../../passenger/components/PassengerManagement.jsx";
-import PassengerPurchase from "./PassengerPurchase.jsx";
-
+// import PassengerPurchase from "./PassengerPurchase.jsx";
+import PassengerListForTicketAgent from "./PassengerListForTicketAgent.jsx";
 
 export default function TicketDashboard() {
     const [tab, setTab] = useState(0);
@@ -29,7 +29,7 @@ export default function TicketDashboard() {
             </Tabs>
 
             {tab === 0 && <GuestPurchase />}
-            {tab === 1 && <PassengerPurchase />}
+            {tab === 1 && <PassengerListForTicketAgent />}
         </Box>
     );
 }
