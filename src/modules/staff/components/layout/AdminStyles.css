@@ -1,47 +1,76 @@
-.admin-layout {
-    min-height: 100vh;
-    width: 100%;
-    background-color: #f8f9fa;
-}
+    .admin-layout {
+        min-height: 100vh;
+        width: 100%;
+        background-color: #f8f9fa;
+    }
 
-.admin-content {
-    padding: 20px;
-    overflow-y: auto;
-    height: 100vh;
-}
+    .admin-content {
+        padding: 20px;
+        overflow-y: auto;
+        height: 100vh;
+    }
 
-.sidebar-container {
-    min-height: 100vh;
-    width: fit-content;
-    max-width: 250px;
-    white-space: nowrap;
-}
+    .sidebar-container {
+        min-height: 100vh;
+        width: 250px    ;
+        max-width: 250px;
+        white-space: nowrap;
+    }
+    /* Sidebar specific styles */
+    .sidebar-container .sidebar-link {
+        padding: 20px 10px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        transition: all 0.3s ease;
+    }
 
-.sidebar-nav .nav-link {
-    padding-left: 0;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    color: black;
-    font-weight: 500;
-}
+    .sidebar-container .sidebar-link:hover {
+        background-color: #f0f0f0;
+    }
 
-.sidebar-nav .nav-link:hover {
-    color: #0d6efd;
-}
+    .sidebar-container .active-link {
+        background-color: #0d6efd;
+        color: white !important;
+        font-weight: bold;
+    }
 
-.avatar-circle {
-    background-color: #6c757d;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    .sidebar-container .active-link:hover {
+        background-color: #0b5ed7;
+    }
+    .avatar-circle {
+        background-color: #6c757d;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
+    .avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .me-2{
+        color: #0D1321;
+    }
+
+    .sidebar-container {
+        min-height: 100vh;
+        width: 250px;
+        max-width: 250px;
+        white-space: nowrap;
+        transition: width 0.3s ease, max-width 0.3s ease;
+    }
+
+    .sidebar-container.collapsed {
+        width: 60px;
+        max-width: 60px;
+    }
+
+    .nav-icon {
+        color: black;
+    }

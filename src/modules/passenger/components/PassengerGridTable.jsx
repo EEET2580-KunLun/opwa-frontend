@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Button, Table, Modal, Badge } from "react-bootstrap";
+import { Button, Table, Modal, Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { PencilFill, CreditCardFill, TrashFill } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 import { useDeletePassengerMutation } from '../store/pawaPassengerApiSlice.js';
 import { PLACEHOLDER_USER_IMAGE } from "../../../shared/constant.js";
+import {toast} from "sonner";
 
 const PassengerGridTable = ({ passengerData = [] }) => {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -19,7 +21,13 @@ const PassengerGridTable = ({ passengerData = [] }) => {
     };
 
     const confirmDelete = async () => {
-        // Delete passenger logic
+        try {
+            deletePassenger(passengerToDelete.id)
+            setShowConfirmModal(false);
+            toast.success(`Passenger ${passengerToDelete.firstName} ${passengerToDelete.lastName} deleted successfully`);
+        } catch (error) {
+            toast.error(`Failed to delete passenger: ${error.message}`);
+        }
     };
 
     const handleEditClick = (passenger) => {
@@ -28,11 +36,9 @@ const PassengerGridTable = ({ passengerData = [] }) => {
         });
     };
 
-    // Replace the direct purchase logic with redirection to ticket module
     const handlePurchaseClick = (passenger) => {
-        // Redirect to ticket purchase page with passenger info in state
         navigate(`/ticket-agent/tickets/sell`, {
-            state: { 
+            state: {
                 passengerId: passenger.id,
                 passengerInfo: passenger,
                 redirectSource: 'passenger-management'
@@ -87,27 +93,52 @@ const PassengerGridTable = ({ passengerData = [] }) => {
                                     {passenger.isRevolutionaryContribution && <Badge bg="success">Revolutionary</Badge>}
                                 </td>
                                 <td>
-                                    <Button
-                                        variant="link"
-                                        className="text-success p-0 me-2"
-                                        onClick={() => handleEditClick(passenger)}
-                                    >
-                                        Edit
-                                    </Button>
-                                    <Button
-                                        variant="link"
-                                        className="text-primary p-0 me-2"
-                                        onClick={() => handlePurchaseClick(passenger)}
-                                    >
-                                        Purchase
-                                    </Button>
-                                    <Button
-                                        variant="link"
-                                        className="text-danger p-0"
-                                        onClick={() => handleDeleteClick(passenger)}
-                                    >
-                                        Delete
-                                    </Button>
+                                    <div className="d-flex">
+                                        <OverlayTrigger
+                                            placement="top"
+                                            overlay={<Tooltip>Edit passenger information</Tooltip>}
+                                        >
+                                            <Button
+                                                variant="outline-success"
+                                                size="sm"
+                                                className="me-2 d-flex align-items-center"
+                                                onClick={() => handleEditClick(passenger)}
+                                            >
+                                                <PencilFill className="me-1" size={14} />
+                                                <span className="d-none d-md-inline">Edit</span>
+                                            </Button>
+                                        </OverlayTrigger>
+
+                                        <OverlayTrigger
+                                            placement="top"
+                                            overlay={<Tooltip>Purchase a ticket for this passenger</Tooltip>}
+                                        >
+                                            <Button
+                                                variant="outline-primary"
+                                                size="sm"
+                                                className="me-2 d-flex align-items-center"
+                                                onClick={() => handlePurchaseClick(passenger)}
+                                            >
+                                                <CreditCardFill className="me-1" size={14} />
+                                                <span className="d-none d-md-inline">Purchase</span>
+                                            </Button>
+                                        </OverlayTrigger>
+
+                                        <OverlayTrigger
+                                            placement="top"
+                                            overlay={<Tooltip>Delete this passenger</Tooltip>}
+                                        >
+                                            <Button
+                                                variant="outline-danger"
+                                                size="sm"
+                                                className="d-flex align-items-center"
+                                                onClick={() => handleDeleteClick(passenger)}
+                                            >
+                                                <TrashFill className="me-1" size={14} />
+                                                <span className="d-none d-md-inline">Delete</span>
+                                            </Button>
+                                        </OverlayTrigger>
+                                    </div>
                                 </td>
                             </tr>
                         ))
@@ -119,7 +150,7 @@ const PassengerGridTable = ({ passengerData = [] }) => {
                     </tbody>
                 </Table>
             </div>
-            
+
             {/* Confirmation Modal */}
             <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
                 <Modal.Header closeButton>

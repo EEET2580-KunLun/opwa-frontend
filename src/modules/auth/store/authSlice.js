@@ -27,10 +27,13 @@ const authSlice = createSlice({
         setErrorCode(state, action) {
             state.errorCode = action.payload;
         },
+        setUser(state, action) {
+            state.user = action.payload;
+        }
     }
 })
 
-export const {googleLogin,login, logout, setXSRFToken, setErrorCode} = authSlice.actions;
+export const {setUser,googleLogin,login, logout, setXSRFToken, setErrorCode} = authSlice.actions;
 export default authSlice.reducer;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;

@@ -179,19 +179,21 @@ const StaffManagement = () => {
     const loading = isLoading || isFetching;
 
     return (
-        <Container fluid className="p-0">
+        <Container fluid className="">
             <Row className="g-0">
-                <Col md={10} className="bg-light-subtle">
+                <Col className="bg-light-subtle">
                     <div className="p-4">
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <h2 className="mb-0">Staff Account Management</h2>
                             <Button
-                                variant="purple"
-                                className="d-flex align-items-center"
-                                style={{backgroundColor: '#8e44ad', borderColor: '#8e44ad'}}
-                                onClick={() => navigate('/admin/staff/create')}>
-                                <PeopleFill className="me-2"/>
-                                Register new staff
+                                variant="primary"
+                                className="d-flex align-items-center shadow-sm rounded-3 py-2 px-3"
+                                onClick={() => navigate('/admin/staff/create')}
+                            >
+                                <div className="d-flex align-items-center">
+                                    <PeopleFill className="me-2" />
+                                    <span className="fw-medium">Register new staff</span>
+                                </div>
                             </Button>
                         </div>
 

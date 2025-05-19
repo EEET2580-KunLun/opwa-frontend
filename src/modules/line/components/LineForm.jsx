@@ -15,8 +15,6 @@ import {
 import {
     FaPlus,
     FaTrash,
-    FaArrowUp,
-    FaArrowDown,
     FaSave,
     FaTimes,
     FaExclamationTriangle
@@ -36,60 +34,12 @@ import {
     frequencyValidationRules,
     stationsValidationRules } from '../util/validationUtils'
 
-// Draggable station item for reordering
-const DraggableStationItem = ({ station, index, moveStation, onRemove, onTimeChange }) => {
-    const [{ isDragging }, drag] = useDrag({
-        type: 'STATION',
-        item: { index },
-        collect: (monitor) => ({
-            isDragging: monitor.isDragging(),
-        }),
-    });
-
-    const [, drop] = useDrop({
-        accept: 'STATION',
-        hover: (draggedItem) => {
-            if (draggedItem.index !== index) {
-                moveStation(draggedItem.index, index);
-                draggedItem.index = index;
-            }
-        },
-    });
-
-    return (
-        <tr
-            ref={(node) => drag(drop(node))}
-            style={{ opacity: isDragging ? 0.5 : 1, cursor: 'move' }}
-        >
-            <td>{index + 1}</td>
-            <td>{station.station_name}</td>
-            <td>
-                <Form.Control
-                    type="number"
-                    min="1"
-                    disabled={index === 0}
-                    value={index === 0 ? 0 : station.time_from_previous_station}
-                    onChange={(e) => onTimeChange(index, parseInt(e.target.value))}
-                />
-            </td>
-            <td className="text-center">
-                <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={() => onRemove(index)}
-                >
-                    <FaTrash />
-                </Button>
-            </td>
-        </tr>
-    );
-};
-
 const LineForm = () => {
     const { id } = useParams();
     const isEditing = Boolean(id);
     const navigate = useNavigate();
     const originalNameRef = useRef("");
+    const [dropPosition, setDropPosition] = useState(null); // Track drop position
 
     const [selectedStations, setSelectedStations] = useState([]);
     const [stationToAdd, setStationToAdd] = useState('');
@@ -229,18 +179,22 @@ const LineForm = () => {
         setSelectedStations(newStations);
     };
 
+    // Modified moveStation function for insertion instead of swapping
     const moveStation = (fromIndex, toIndex) => {
         const newStations = [...selectedStations];
-        const [movedStation] = newStations.splice(fromIndex, 1);
-        newStations.splice(toIndex, 0, movedStation);
+        const [movedItem] = newStations.splice(fromIndex, 1);
 
-        // Resequence stations after reordering
+        // Insert at the target position
+        newStations.splice(toIndex, 0, movedItem);
+
+        // Resequence after reordering
         const resequenced = newStations.map((station, idx) => ({
             ...station,
             sequence: idx
         }));
 
         setSelectedStations(resequenced);
+        setDropPosition(null); // Reset drop indicator
     };
 
     const onSubmit = async (data) => {
@@ -315,6 +269,110 @@ const LineForm = () => {
             </div>
         );
     }
+
+    // Updated DraggableStationItem component with drop indicators
+    const DraggableStationItem = ({ station, index, moveStation, onRemove, onTimeChange }) => {
+        const [{ isDragging }, drag] = useDrag({
+            type: 'STATION',
+            item: { index },
+            collect: (monitor) => ({
+                isDragging: monitor.isDragging(),
+            }),
+            end: () => setDropPosition(null) // Clear indicator when drag ends
+        });
+
+        const [{ isOver }, drop] = useDrop({
+            accept: 'STATION',
+            hover: (draggedItem, monitor) => {
+                if (draggedItem.index === index) return;
+
+                // Determine if hovering in the upper or lower half of the row
+                const hoverBoundingRect = ref.current?.getBoundingClientRect();
+                if (!hoverBoundingRect) return;
+
+                const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+                const clientOffset = monitor.getClientOffset();
+                const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+                // Only perform the move when the mouse crosses the middle of the row
+                if (draggedItem.index < index && hoverClientY < hoverMiddleY) return;
+                if (draggedItem.index > index && hoverClientY > hoverMiddleY) return;
+
+                // Set the position where we want to show the drop indicator
+                setDropPosition(hoverClientY < hoverMiddleY ? index : index + 1);
+            },
+            drop: (draggedItem) => {
+                if (draggedItem.index === index) return;
+                moveStation(draggedItem.index, dropPosition);
+            },
+            collect: (monitor) => ({
+                isOver: monitor.isOver()
+            })
+        });
+
+        const ref = useRef(null);
+
+        return (
+            <>
+                {dropPosition === index && (
+                    <tr className="drop-indicator">
+                        <td colSpan="4">
+                            <div className="drop-line" style={{
+                                height: '3px',
+                                backgroundColor: '#007bff',
+                                width: '100%',
+                                margin: '0'
+                            }}></div>
+                        </td>
+                    </tr>
+                )}
+                <tr
+                    ref={(node) => {
+                        ref.current = node;
+                        drag(drop(node));
+                    }}
+                    style={{
+                        opacity: isDragging ? 0.5 : 1,
+                        cursor: 'move',
+                        backgroundColor: isOver ? 'rgba(0,123,255,0.1)' : 'transparent'
+                    }}
+                >
+                    <td>{index + 1}</td>
+                    <td>{station.station_name}</td>
+                    <td>
+                        <Form.Control
+                            type="number"
+                            min="1"
+                            disabled={index === 0}
+                            value={index === 0 ? 0 : station.time_from_previous_station}
+                            onChange={(e) => onTimeChange(index, parseInt(e.target.value))}
+                        />
+                    </td>
+                    <td className="text-center">
+                        <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => onRemove(index)}
+                        >
+                            <FaTrash />
+                        </Button>
+                    </td>
+                </tr>
+                {dropPosition === index + 1 && (
+                    <tr className="drop-indicator">
+                        <td colSpan="4">
+                            <div className="drop-line" style={{
+                                height: '3px',
+                                backgroundColor: '#007bff',
+                                width: '100%',
+                                margin: '0'
+                            }}></div>
+                        </td>
+                    </tr>
+                )}
+            </>
+        );
+    };
 
     return (
         <Card>

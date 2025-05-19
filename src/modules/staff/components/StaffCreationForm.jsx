@@ -34,8 +34,8 @@ import {
     validateDOB,
     validateUsername
 } from "../util/validationUtils.js";
-import {useSelector} from "react-redux";
-import {selectCurrentUser} from "../../auth/store/authSlice.js";
+import {useDispatch, useSelector} from "react-redux";
+import {selectCurrentUser, setUser} from "../../auth/store/authSlice.js";
 import { convertToSnakeCase } from "../../../shared/utils.js";
 
 const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitialData = null, onSuccess }) => {
@@ -47,6 +47,8 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
     const [showPassword, setShowPassword] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const currentUser =  useSelector(selectCurrentUser)
+
+    const dispatch = useDispatch();
 
 
     // Determine if we're in edit mode from either props or URL
@@ -279,7 +281,7 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                 avatarFormData.append('profilePicture', file);
 
                 // Call the upload mutation
-                await uploadAvatar({
+                const response = await uploadAvatar({
                     staffId: initialData.id,
                     formData: avatarFormData
                 }).unwrap();
@@ -290,6 +292,13 @@ const StaffForm = ({isEditMode: propIsEditMode = false, initialData: propInitial
                     message: "Profile picture updated successfully",
                     severity: "success"
                 });
+
+                console.log("Avatar upload response:", response);
+                // Create a new user object with the updated profile picture
+                dispatch(setUser({
+                    ...currentUser,
+                    profile_picture: response.data?.avatar_url
+                }));
             } catch (error) {
                 console.error("Failed to upload avatar:", error);
 

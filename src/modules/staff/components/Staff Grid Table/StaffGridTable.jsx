@@ -6,6 +6,7 @@ import {useSelector} from "react-redux";
 import {useStaffGridTable} from "./hooks/useStaffGridTable.js";
 import {useNavigate} from "react-router-dom";
 import SortableHeader from "../../../../shared/components/SortableHeader.jsx";
+import {PencilFill, TrashFill} from "react-bootstrap-icons";
 
 const StaffGridTable = ({ 
     staffData = [], 
@@ -122,20 +123,18 @@ const StaffGridTable = ({
                                         <Button
                                             variant="link"
                                             className={"text-success p-0 me-3"}
-                                            onClick={() => {
-                                                handleEditClick(staff);
-                                            }}
+                                            onClick={() => handleEditClick(staff)}
                                         >
+                                            <PencilFill className="me-1" size={14} />
                                             Edit
                                         </Button>
                                         <Button
                                             variant="link"
                                             className={isCurrentUser ? "text-secondary p-0" : "text-danger p-0"}
-                                            onClick={() => {
-                                                handleDeleteClick(staff);
-                                            }}
+                                            onClick={() => handleDeleteClick(staff)}
                                             disabled={isCurrentUser}
                                         >
+                                            <TrashFill className="me-1" size={14} />
                                             Delete
                                         </Button>
                                     </td>

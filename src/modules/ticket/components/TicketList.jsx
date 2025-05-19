@@ -9,11 +9,20 @@ import {
     TablePagination,
     Paper,
     Chip,
-    Typography
+    Typography,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Grid,
+    Box,
+    Button
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useGetAllTicketsQuery } from '../store/pawaTicketApiSlice';
 import { formatDate } from '../utils/formatUtils';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 
 const ListContainer = styled(Paper)(({ theme }) => ({
     margin: theme.spacing(2),
@@ -40,6 +49,11 @@ export default function TicketList() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    // Filter states
+    const [typeFilter, setTypeFilter] = useState('ALL');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [dateFilter, setDateFilter] = useState(null);
+
     if (isLoading) return <LoadingWrapper>Loading tickets...</LoadingWrapper>;
 
     // Handle empty data case
@@ -53,8 +67,114 @@ export default function TicketList() {
         );
     }
 
+    // Apply filters to data
+    const filteredData = data.filter(ticket => {
+        // Type filter
+        if (typeFilter !== 'ALL' && ticket.type !== typeFilter) {
+            return false;
+        }
+
+        // Status filter
+        if (statusFilter !== 'ALL' && ticket.status !== statusFilter) {
+            return false;
+        }
+
+        // Date filter
+        if (dateFilter) {
+            const ticketDate = new Date(ticket.purchaseTime);
+            const filterDate = new Date(dateFilter);
+
+            if (
+                ticketDate.getDate() !== filterDate.getDate() ||
+                ticketDate.getMonth() !== filterDate.getMonth() ||
+                ticketDate.getFullYear() !== filterDate.getFullYear()
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+
+    const handleClearDate = () => {
+        setDateFilter(null);
+        setPage(0);
+    };
+
     return (
         <ListContainer>
+            <Box sx={{ p: 2 }}>
+                <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={12} sm={4} md={3}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Ticket Type</InputLabel>
+                            <Select
+                                value={typeFilter}
+                                label="Ticket Type"
+                                onChange={(e) => {
+                                    setTypeFilter(e.target.value);
+                                    setPage(0);
+                                }}
+                            >
+                                <MenuItem value="ALL">All Types</MenuItem>
+                                <MenuItem value="ONE_WAY">ONE_WAY</MenuItem>
+                                <MenuItem value="FREE">FREE</MenuItem>
+                                <MenuItem value="DAILY">DAILY</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={4} md={3}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Status</InputLabel>
+                            <Select
+                                value={statusFilter}
+                                label="Status"
+                                onChange={(e) => {
+                                    setStatusFilter(e.target.value);
+                                    setPage(0);
+                                }}
+                            >
+                                <MenuItem value="ALL">All Statuses</MenuItem>
+                                <MenuItem value="ACTIVE">ACTIVE</MenuItem>
+                                <MenuItem value="INACTIVE">INACTIVE</MenuItem>
+                                <MenuItem value="EXPIRED">EXPIRED</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={4} md={4}>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                <DatePicker
+                                    label="Purchase Date"
+                                    value={dateFilter}
+                                    onChange={(newDate) => {
+                                        setDateFilter(newDate);
+                                        setPage(0);
+                                    }}
+                                    slotProps={{
+                                        textField: {
+                                            fullWidth: true,
+                                            size: "small"
+                                        }
+                                    }}
+                                />
+                            </LocalizationProvider>
+                            {dateFilter && (
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={handleClearDate}
+                                >
+                                    Clear
+                                </Button>
+                            )}
+                        </Box>
+                    </Grid>
+                </Grid>
+            </Box>
+
             <TableContainer>
                 <Table>
                     <TableHead>
@@ -68,7 +188,7 @@ export default function TicketList() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {data
+                        {filteredData
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                             .map(ticket => (
                                 <TableRow key={ticket.id}>
@@ -79,8 +199,8 @@ export default function TicketList() {
                                     </TableCell>
                                     <TableCell>{formatDate(ticket.purchaseTime)}</TableCell>
                                     <TableCell>
-                                        <Chip 
-                                            label={ticket.status} 
+                                        <Chip
+                                            label={ticket.status}
                                             color={getStatusColor(ticket.status)}
                                             size="small"
                                         />
@@ -98,7 +218,7 @@ export default function TicketList() {
             </TableContainer>
             <TablePagination
                 component="div"
-                count={data.length}
+                count={filteredData.length}
                 page={page}
                 onPageChange={(_, p) => setPage(p)}
                 rowsPerPage={rowsPerPage}
