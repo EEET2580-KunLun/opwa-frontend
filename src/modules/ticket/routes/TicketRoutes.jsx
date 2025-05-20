@@ -2,6 +2,7 @@ import React, { lazy } from 'react';
 import { Route } from 'react-router-dom';
 import ProtectedRoute from '../../../app/route/ProtectedRoute';
 import {ThemeProvider} from '@mui/material/styles';
+import StaffCreationForm from "../../staff/components/StaffCreationForm.jsx";
 
 // Lazy load ticket components
 const GuestPurchase = lazy(() => import('../components/GuestPurchase'));
@@ -27,6 +28,7 @@ const TicketRoutes = (
             <Route path="/ticket-agent/tickets/sell" element={<PassengerPurchase />} />
             <Route path="/tickets/purchase" element={<PassengerPurchase />} />
             <Route path="/admin/tickets" element={<TicketManagement />} />
+            <Route path="/ticket-agent/profile" element={<StaffCreationForm />} />
         </Route>
     </>
 );
