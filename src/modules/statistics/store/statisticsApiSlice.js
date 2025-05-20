@@ -9,11 +9,14 @@ export const statisticsApiSlice = apiSlice.injectEndpoints({
                 url: STATISTICS_ENDPOINTS.TICKETS,
                 method: 'GET'
             }),
-            transformResponse: (response) => response.data || {
-                ticket_type_counts: [],
-                ticket_status_counts: [],
-                total_tickets: 0
-            }
+                transformResponse: (response) => response.data || {
+                    ticket_type_counts: [],
+                    ticket_status_counts: [],
+                    total_tickets: 0,
+                    guest_ticket_percentage: 0,
+                    monthly_revenue: [],
+                    total_revenue: 0,
+                }
         }),
 
         getUserAnalytics: builder.query({
